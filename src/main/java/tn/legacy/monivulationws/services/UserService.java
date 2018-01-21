@@ -6,7 +6,6 @@ import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.repositories.UserRepository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -16,10 +15,12 @@ public class UserService {
     private UserRepository userRepository;
 
     //hard coded data (for crud test)
-    private List<User> users = new ArrayList<>(Arrays.asList(
-            new User(1,"mohamed","ben salah"),
-                new User(2,"ali","ben mohsen")
-    ));
+
+
+    /*private List<User> users = new ArrayList<>(Arrays.asList(
+            new User("mohamedbensalah","pwd","mohamed","ben salah", new Date(), new Date()),
+            new User("alibensalah","pwd","ali","ben salah", new Date(), new Date())
+    ));*/
 
     // CRUD
 
