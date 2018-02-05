@@ -1,6 +1,9 @@
 package tn.legacy.monivulationws.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -14,28 +17,26 @@ public class User{
     private String password;
     private String firstName;
     private String lastName;
-    private Date birthDate;
-    private Date inscriptionDate;
-    @OneToMany(mappedBy = "temperatureUser")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime birthDate;
+    private LocalDateTime inscriptionDate;
+    @OneToMany(mappedBy = "user")
     private List<TemperatureData> temperatureData;
-    @OneToMany(mappedBy = "weightUser")
+    @OneToMany(mappedBy = "user")
     private List<WeightData> weightData;
-    @OneToMany(mappedBy = "cycleUser")
-    private List<CycleData> cycleData;
+    @OneToMany(mappedBy = "user")
+    private List<Cycle> cycleData;
 
     public User() {
     }
 
-    public User(String username, String password, String firstName, String lastName, Date birthDate, Date inscriptionDate, List<TemperatureData> temperatureData, List<WeightData> weightData, List<CycleData> cycleData) {
+    public User(String username, String password, String firstName, String lastName, LocalDateTime birthDate, LocalDateTime inscriptionDate) {
         this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.inscriptionDate = inscriptionDate;
-        this.temperatureData = temperatureData;
-        this.weightData = weightData;
-        this.cycleData = cycleData;
     }
 
     public int getId() {
@@ -78,19 +79,19 @@ public class User{
         this.password = password;
     }
 
-    public Date getBirthDate() {
+    public LocalDateTime getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDateTime birthDate) {
         this.birthDate = birthDate;
     }
 
-    public Date getInscriptionDate() {
+    public LocalDateTime getInscriptionDate() {
         return inscriptionDate;
     }
 
-    public void setInscriptionDate(Date inscriptionDate) {
+    public void setInscriptionDate(LocalDateTime inscriptionDate) {
         this.inscriptionDate = inscriptionDate;
     }
 
@@ -110,11 +111,11 @@ public class User{
         this.weightData = weightData;
     }
 
-    public List<CycleData> getCycleData() {
+    public List<Cycle> getCycleData() {
         return cycleData;
     }
 
-    public void setCycleData(List<CycleData> cycleData) {
+    public void setCycleData(List<Cycle> cycleData) {
         this.cycleData = cycleData;
     }
 }

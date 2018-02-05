@@ -1,6 +1,9 @@
 package tn.legacy.monivulationws.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -9,18 +12,19 @@ public class WeightData {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
-    private Date entryDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime entryDate;
     private float value;
     @ManyToOne
-    private User weightUser;
+    private User user;
 
     public WeightData() {
     }
 
-    public WeightData(Date entryDate, float value, User weightUser) {
+    public WeightData(LocalDateTime entryDate, float value, User user) {
         this.entryDate = entryDate;
         this.value = value;
-        this.weightUser = weightUser;
+        this.user = user;
     }
 
     public int getId() {
@@ -31,11 +35,11 @@ public class WeightData {
         this.id = id;
     }
 
-    public Date getEntryDate() {
+    public LocalDateTime getEntryDate() {
         return entryDate;
     }
 
-    public void setEntryDate(Date entryDate) {
+    public void setEntryDate(LocalDateTime entryDate) {
         this.entryDate = entryDate;
     }
 
@@ -47,11 +51,11 @@ public class WeightData {
         this.value = value;
     }
 
-    public User getWeightUser() {
-        return weightUser;
+    public User getUser() {
+        return user;
     }
 
-    public void setWeightUser(User weightUser) {
-        this.weightUser = weightUser;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

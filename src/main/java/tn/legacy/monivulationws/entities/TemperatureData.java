@@ -1,7 +1,10 @@
 package tn.legacy.monivulationws.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 public class TemperatureData {
@@ -9,18 +12,25 @@ public class TemperatureData {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
-    private Date entryDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime entryDate;
     private float value;
     @ManyToOne
-    private User temperatureUser;
+    @JsonIgnore
+    private User user;
 
     public TemperatureData() {
     }
 
-    public TemperatureData(Date entryDate, float value, User temperatureUser) {
+    public TemperatureData(LocalDateTime entryDate, float value) {
         this.entryDate = entryDate;
         this.value = value;
-        this.temperatureUser = temperatureUser;
+    }
+
+    public TemperatureData(LocalDateTime entryDate, float value, User user) {
+        this.entryDate = entryDate;
+        this.value = value;
+        this.user = user;
     }
 
     public int getId() {
@@ -31,11 +41,11 @@ public class TemperatureData {
         this.id = id;
     }
 
-    public Date getEntryDate() {
+    public LocalDateTime getEntryDate() {
         return entryDate;
     }
 
-    public void setEntryDate(Date entryDate) {
+    public void setEntryDate(LocalDateTime entryDate) {
         this.entryDate = entryDate;
     }
 
@@ -47,11 +57,11 @@ public class TemperatureData {
         this.value = value;
     }
 
-    public User getTemperatureUser() {
-        return temperatureUser;
+    public User getUser() {
+        return user;
     }
 
-    public void setTemperatureUser(User temperatureUser) {
-        this.temperatureUser = temperatureUser;
+    public void setUser(User user) {
+        this.user = user;
     }
 }
