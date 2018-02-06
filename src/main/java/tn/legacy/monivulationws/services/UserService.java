@@ -1,7 +1,9 @@
 package tn.legacy.monivulationws.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import tn.legacy.monivulationws.CustomClasses.Login;
 import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.repositories.UserRepository;
 
@@ -11,16 +13,13 @@ import java.util.List;
 @Service
 public class UserService {
 
+    private final UserRepository userRepository;
+
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-    //hard coded data (for crud test)
-
-
-    /*private List<User> users = new ArrayList<>(Arrays.asList(
-            new User("mohamedbensalah","pwd","mohamed","ben salah", new Date(), new Date()),
-            new User("alibensalah","pwd","ali","ben salah", new Date(), new Date())
-    ));*/
 
     // CRUD
 
@@ -28,8 +27,13 @@ public class UserService {
         List<User> users = new ArrayList<>();
         userRepository.findAll().forEach(users::add);
         return users;
+    }
 
-        //return users for hard coded data
+    public boolean login(Login login) {
+        User user = userRepository.findUserByEmail(login.getEmail());
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.matches(login.getPassword(), user.getPassword());
+
     }
 
     public User getUser(int id) {
@@ -38,9 +42,10 @@ public class UserService {
     }
 
     public void addUser(User user){
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
-        //hard coded data
-        //users.add(user);
+
     }
 
     public void updateUser(int id, User user) {
@@ -49,13 +54,6 @@ public class UserService {
 
         userRepository.save(user);
 
-        //for hard coded data
-        /*for (int i=0; i<users.size();i++) {
-            User u = users.get(i);
-            if (u.getId()==id){
-                users.set(i,user);
-            }
-        }*/
     }
 
     public void deleteUser(int id) {
