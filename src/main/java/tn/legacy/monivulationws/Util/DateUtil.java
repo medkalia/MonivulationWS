@@ -21,17 +21,17 @@ public class DateUtil {
 
     //**** Return Current Time
     //Without Format
-    public static LocalDateTime getCurrentTime(){
+    public static LocalDateTime getCurrentDateTime(){
         return LocalDateTime.now();
     }
     //Default Format
-    public static String getCurrentTimeFormatted(){
+    public static String getCurrentDateTimeFormatted(){
         LocalDateTime time = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(FORMAT_DEFAULT);
         return time.format(formatter);
     }
     //Specific Format
-    public static String getCurrentTimeFormatted(String format){
+    public static String getCurrentDateTimeFormatted(String format){
         LocalDateTime time = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(FORMAT_DEFAULT);
         if (!format.equals("") && !format.equals(FORMAT_DEFAULT))
@@ -41,14 +41,14 @@ public class DateUtil {
 
     //**** Return Current Time in specific timezone
     //Without Format
-    public static LocalDateTime getCurrentTimeWithTimeZone(String timeZone) {
+    public static LocalDateTime getCurrentDateTimeWithTimeZone(String timeZone) {
         ZoneId zoneId = ZoneId.of(TIME_ZONE_DEFAULT);
         if (!timeZone.equals("") && !timeZone.equals(TIME_ZONE_DEFAULT))
             zoneId = ZoneId.of(timeZone);
         return LocalDateTime.now(zoneId);
     }
     //Default Format
-    public static String getCurrentTimeFormattedWithTimeZone(String timeZone) {
+    public static String getCurrentDateTimeFormattedWithTimeZone(String timeZone) {
         ZoneId zoneId = ZoneId.of(TIME_ZONE_DEFAULT);
         if (!timeZone.equals("") && !timeZone.equals(TIME_ZONE_DEFAULT))
             zoneId = ZoneId.of(timeZone);
@@ -58,7 +58,7 @@ public class DateUtil {
         return formattedTime;
     }
     //Specific Format
-    public static String getCurrentTimeFormattedWithTimeZone(String format, String timeZone) {
+    public static String getCurrentDateTimeFormattedWithTimeZone(String format, String timeZone) {
         ZoneId zoneId = ZoneId.of(TIME_ZONE_DEFAULT);
         if (!timeZone.equals("") && !timeZone.equals(TIME_ZONE_DEFAULT))
             zoneId = ZoneId.of(timeZone);
@@ -71,7 +71,7 @@ public class DateUtil {
     }
 
     //**** Return Current Time with some offset
-    public static LocalDateTime getCurrentTimeWithOffset(String offset) {
+    public static LocalDateTime getCurrentDateTimeWithOffset(String offset) {
         ZoneId zoneId = ZoneId.of(TIME_ZONE_DEFAULT);
         if (offset.equals("")){
             System.err.println("Offset given epmty ! returning date without offset");
@@ -96,7 +96,7 @@ public class DateUtil {
             case Hours:
                 return durationInHours;
             case Days:
-                return durationInMonths;
+                return durationInDays;
             case Months:
                 return durationInMonths;
         }
@@ -139,6 +139,24 @@ public class DateUtil {
     public static LocalDateTime formatDateTo(LocalDateTime dateToFormat, String format){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return LocalDateTime.parse(dateToFormat.format(formatter), formatter);
+    }
+
+    //*** Add number of days
+    public static LocalDateTime addNumberOfDaysTo (LocalDateTime dateToAddTo, float numberOfDaysToAdd){
+        LocalDateTime finalDate = dateToAddTo ;
+
+        int exactNumberOfDayToAdd = (int)numberOfDaysToAdd;
+        finalDate = finalDate.plusDays(exactNumberOfDayToAdd);
+
+        float numberOfHoursTodAdd = (numberOfDaysToAdd-exactNumberOfDayToAdd) * 24 ;
+        int exactNumberOfHoursToAdd = (int)numberOfHoursTodAdd;
+        finalDate = finalDate.plusHours(exactNumberOfHoursToAdd);
+
+        float numberOfMinutesToAdd = (numberOfHoursTodAdd-exactNumberOfHoursToAdd) * 60 ;
+        int exactNumberOfMinutesToAdd = (int)numberOfMinutesToAdd;
+        finalDate = finalDate.plusMinutes(exactNumberOfMinutesToAdd);
+
+        return finalDate ;
     }
 
 

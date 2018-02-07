@@ -52,7 +52,7 @@ public class DateUtil {
         return LocalTime.now(zoneId);
     }
 
-     /*public static String getCurrentTimeFormatted(String format) {
+     /*public static String getCurrentDateTimeFormatted(String format) {
         Calendar cal = Calendar.getInstance();
         Date date=cal.getTime();
         DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -62,7 +62,7 @@ public class DateUtil {
         return formattedDate ;
     }
 
-    public static Date getCurrentTime() {
+    public static Date getCurrentDateTime() {
         Calendar cal = Calendar.getInstance();
         Date date=cal.getTime();
         return date;

@@ -1,6 +1,7 @@
 package tn.legacy.monivulationws.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -15,30 +16,21 @@ public class Cycle {
     private LocalDateTime startDate;
     private float length;
     private float periodLength;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime fertilityStartDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime fertilityEndDate;
+    private float follicularLength;
+    private float lutealLength;
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 
+    @OneToOne
+    private Pregnancy pregnancy;
+
     public Cycle() {
-    }
-
-    public Cycle(LocalDateTime startDate, float length, float periodLength, LocalDateTime fertilityStartDate, LocalDateTime fertilityEndDate) {
-        this.startDate = startDate;
-        this.length = length;
-        this.periodLength = periodLength;
-        this.fertilityStartDate = fertilityStartDate;
-        this.fertilityEndDate = fertilityEndDate;
-    }
-
-    public Cycle(LocalDateTime startDate, float length, float periodLength, LocalDateTime fertilityStartDate, LocalDateTime fertilityEndDate, User user) {
-        this.startDate = startDate;
-        this.length = length;
-        this.periodLength = periodLength;
-        this.fertilityStartDate = fertilityStartDate;
-        this.fertilityEndDate = fertilityEndDate;
-        this.user = user;
     }
 
     public int getId() {
@@ -85,6 +77,22 @@ public class Cycle {
         return fertilityEndDate;
     }
 
+    public float getFollicularLength() {
+        return follicularLength;
+    }
+
+    public void setFollicularLength(float follicularLength) {
+        this.follicularLength = follicularLength;
+    }
+
+    public float getLutealLength() {
+        return lutealLength;
+    }
+
+    public void setLutealLength(float lutealLength) {
+        this.lutealLength = lutealLength;
+    }
+
     public void setFertilityEndDate(LocalDateTime fertilityEndDate) {
         this.fertilityEndDate = fertilityEndDate;
     }
@@ -95,5 +103,13 @@ public class Cycle {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Pregnancy getPregnancy() {
+        return pregnancy;
+    }
+
+    public void setPregnancy(Pregnancy pregnancy) {
+        this.pregnancy = pregnancy;
     }
 }
