@@ -4,4 +4,5 @@ import org.springframework.data.repository.CrudRepository;
 import tn.legacy.monivulationws.entities.User;
 
 public interface UserRepository extends CrudRepository<User, Integer> {
+    public User findUserByEmail(String email);
 }

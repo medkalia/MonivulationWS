@@ -2,6 +2,7 @@ package tn.legacy.monivulationws.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tn.legacy.monivulationws.CustomClasses.Login;
 import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.services.UserService;
 
@@ -35,5 +36,10 @@ public class UserController {
     @RequestMapping(method = RequestMethod.DELETE, value = "/users/{id}")
     public void deleteUser(@PathVariable int id){
         userService.deleteUser(id);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/login")
+    public boolean login(@RequestBody Login login){
+        return userService.login(login);
     }
 }
