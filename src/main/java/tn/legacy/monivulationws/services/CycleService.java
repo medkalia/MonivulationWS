@@ -2,10 +2,14 @@ package tn.legacy.monivulationws.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
 import tn.legacy.monivulationws.Util.DateUtil;
 import tn.legacy.monivulationws.entities.Cycle;
+import tn.legacy.monivulationws.entities.Status;
 import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.enumerations.DurationType;
+import tn.legacy.monivulationws.enumerations.PeriodInfoDescription;
+import tn.legacy.monivulationws.enumerations.StatusName;
 import tn.legacy.monivulationws.repositories.CycleRepository;
 
 import java.time.LocalDateTime;
@@ -23,6 +27,9 @@ public class CycleService {
 
     @Autowired
     private CycleRepository cycleRepository;
+
+    @Autowired
+    private StatusService statusService ;
 
 
     //---------------CRUD---------------
@@ -86,31 +93,6 @@ public class CycleService {
 
         cycleRepository.save(cycle);
     }
-    //------------------------------------------
-    //---------------Calculations---------------
-    public float getAverageCycleLenght (User user){
-        float cycleLength = cycleRepository.getAverageCycleLenght(user);
-        if (cycleLength == 0) cycleLength = DEFAULT_CYCLE_LENGTH;
-        return  cycleLength;
-    }
-
-    public float getAveragePeriodLenght (User user){
-        float periodLength = cycleRepository.getAveragePeriodLenght(user);
-        if (periodLength == 0) periodLength = DEFAULT_PERIOD_LENGTH;
-        return  periodLength;
-    }
-
-    public float getAverageFollicularLength (User user){
-        float follicularLength = cycleRepository.getAverageFollicularLength(user);
-        if (follicularLength == 0) follicularLength = DEFAULT_FOLLICULAR_LENGTH;
-        return  follicularLength;
-    }
-
-    public float getAverageLutealLength (User user){
-        float lutealLength = cycleRepository.getAverageLutealLength(user);
-        if (lutealLength == 0) lutealLength = DEFAULT_LUTHEAL_LENGTH;
-        return  lutealLength;
-    }
 
     public void updateFollicularLength (User user){
         Cycle cycle = getCycle(user);
@@ -144,5 +126,82 @@ public class CycleService {
         cycleRepository.save(cycle);
     }
     //------------------------------------------
+    //---------------Calculations---------------
+    public float getAverageCycleLenght (User user){
+        float cycleLength = cycleRepository.getAverageCycleLenght(user);
+        if (cycleLength == 0) cycleLength = DEFAULT_CYCLE_LENGTH;
+        return  cycleLength;
+    }
+
+    public float getAveragePeriodLenght (User user){
+        float periodLength = cycleRepository.getAveragePeriodLenght(user);
+        if (periodLength == 0) periodLength = DEFAULT_PERIOD_LENGTH;
+        return  periodLength;
+    }
+
+    public float getAverageFollicularLength (User user){
+        float follicularLength = cycleRepository.getAverageFollicularLength(user);
+        if (follicularLength == 0) follicularLength = DEFAULT_FOLLICULAR_LENGTH;
+        return  follicularLength;
+    }
+
+    public float getAverageLutealLength (User user){
+        float lutealLength = cycleRepository.getAverageLutealLength(user);
+        if (lutealLength == 0) lutealLength = DEFAULT_LUTHEAL_LENGTH;
+        return  lutealLength;
+    }
+
+    public PeriodInfo getPeriodInfo (User user){
+        Cycle currentCycle = getCycle(user);
+        Status status = statusService.getStatus(user);
+        PeriodInfo periodInfo = new PeriodInfo();
+
+        if(status.getName() == StatusName.follicular && status.isConfirmed()){
+            Cycle previousCycle = cycleRepository.getFirstCycleBefore(user,currentCycle.getStartDate());
+            periodInfo.startDate = currentCycle.getStartDate();
+            periodInfo.endDate = DateUtil.addNumberOfDaysTo(periodInfo.startDate,currentCycle.getPeriodLength());
+            periodInfo.isDelayed = previousCycle.getLutealLength() > currentCycle.getLutealLength();
+            periodInfo.delay = previousCycle.getLutealLength() - currentCycle.getLutealLength();
+            periodInfo.description = PeriodInfoDescription.confirmed;
+        }else if (status.getName() == StatusName.follicular && !status.isConfirmed()){
+            LocalDateTime startOfCurrentLutealPhase = DateUtil.addNumberOfDaysTo(
+                    currentCycle.getStartDate(),
+                    currentCycle.getFollicularLength());
+            float durationOfCurrentFollicularPhase = DateUtil.getDurationBetween(
+                    startOfCurrentLutealPhase,
+                    DateUtil.getCurrentDateTime(),
+                    DurationType.Days);
+
+            periodInfo.startDate = status.getStartDate();
+            periodInfo.endDate = DateUtil.addNumberOfDaysTo(periodInfo.startDate, currentCycle.getPeriodLength());
+            periodInfo.isDelayed = durationOfCurrentFollicularPhase > currentCycle.getLutealLength();
+            if (periodInfo.isDelayed)
+                periodInfo.delay = durationOfCurrentFollicularPhase - currentCycle.getLutealLength();
+            else
+                periodInfo.delay = 0;
+            periodInfo.description = PeriodInfoDescription.notConfirmed;
+        }else if (status.getName() == StatusName.luteal){
+            LocalDateTime startOfCurrentLutealPhase = DateUtil.addNumberOfDaysTo(
+                    currentCycle.getStartDate(),
+                    currentCycle.getFollicularLength());
+            float durationOfCurrentFollicularPhase = DateUtil.getDurationBetween(
+                    startOfCurrentLutealPhase,
+                    DateUtil.getCurrentDateTime(),
+                    DurationType.Days);
+
+            periodInfo.startDate = DateUtil.addNumberOfDaysTo(currentCycle.getStartDate(),currentCycle.getLength());
+            periodInfo.endDate = DateUtil.addNumberOfDaysTo(periodInfo.startDate, currentCycle.getPeriodLength());
+            periodInfo.isDelayed = durationOfCurrentFollicularPhase > currentCycle.getLutealLength();
+            if (periodInfo.isDelayed)
+                periodInfo.delay = durationOfCurrentFollicularPhase - currentCycle.getLutealLength();
+            else
+                periodInfo.delay = 0;
+            periodInfo.description = PeriodInfoDescription.approximate;
+        }
+
+        return periodInfo;
+    }
+    //------------------------------------------
 
 }
+

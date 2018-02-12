@@ -1,6 +1,7 @@
 package tn.legacy.monivulationws.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class WeightData {
     private LocalDateTime entryDate;
     private float value;
     @ManyToOne
+    @JsonIgnore
     private User user;
 
     public WeightData() {

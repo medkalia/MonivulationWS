@@ -20,12 +20,14 @@ public class TemperatureDataService {
     @Autowired
     private StatusService statusService;
 
+    //---------------CRUD---------------
     public void addTemperatureData(TemperatureData temperatureData){
         temperatureDataRepository.save(temperatureData);
 
         statusService.checkStatus(temperatureData);
     }
 
+    //return temperature at specific date
     public TemperatureData getTemperatureData (User user, LocalDateTime date, DateSearchType dateSearchType){
         switch (dateSearchType){
             case FullDate:
@@ -56,6 +58,7 @@ public class TemperatureDataService {
 
         return  null;
     }
+    //------------------------------------------
 
 
 }

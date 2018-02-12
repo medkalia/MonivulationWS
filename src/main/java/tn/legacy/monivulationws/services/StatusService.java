@@ -23,6 +23,8 @@ public class StatusService {
 
     @Autowired
     private CycleService cycleService;
+    @Autowired
+    private PregnancyService pregnancyService;
 
     //create status for first time
     public void createFirstStatus(User user, LocalDateTime startDate){
@@ -70,10 +72,24 @@ public class StatusService {
                     statusRepository.save(status);
                     return "Temperature lower than 37 C° : waiting for user confirmation of new cycle start";
                 }
-                /*else if (temperatureData.getValue() > DEFAULT_SWITCH_TEMPERATURE *//*&&
-                        DateUtil.getDurationBetween(status.getStartDate(), DateUtil.getCurrentDateTime(),DurationType.Days) > cycleService.getAverageCycleLenght()*//*){
-
-                }*/
+                else if (temperatureData.getValue() > DEFAULT_SWITCH_TEMPERATURE &&
+                        DateUtil.getDurationBetween(status.getStartDate(), DateUtil.getCurrentDateTime(),DurationType.Days) > cycleService.getAverageLutealLength(user)){
+                    status.setName(StatusName.pregnancy);
+                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                    status.setStartDate(DateUtil.getCurrentDateTime());
+                    status.setConfirmed(false);
+                    statusRepository.save(status);
+                    return "Temperature still higher than 37 C° and period delayed: waiting for user confirmation of pregnancy";
+                }
+            case pregnancy:
+                if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
+                    status.setName(StatusName.follicular);
+                    /*TEST*/ status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                    //status.setStartDate(DateUtil.getCurrentDateTime());
+                    status.setConfirmed(false);
+                    statusRepository.save(status);
+                    return "Temperature lower than 37 C° : not pregnant, waiting for user confirmation of new cycle start";
+                }
         break;
         }
         return "No changed were applied";
@@ -85,17 +101,28 @@ public class StatusService {
         /*TEST*/ status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
         //status.setStartDate(DateUtil.getCurrentDateTime());
         status.setConfirmed(true);
+        statusRepository.save(status);
         cycleService.updateLutealLength(user);
         cycleService.startCycle(user);
         return "Start of new cycle confirmed";
     }
 
     //This is called when user confirms being pregnant
-    /*public String confirmPregnancy (User user){
+    public String confirmPregnancy (User user){
         Status status = getStatus(user);
-        if (status.getName() ==  StatusName.luteal){
-
+        if (status.getName() !=  StatusName.pregnancy){
+            status.setName(StatusName.pregnancy);
+            status.setStartDate(DateUtil.getCurrentDateTime());
+            status.setConfirmed(true);
+            statusRepository.save(status);
+            pregnancyService.startPregnancy(user);
+            return "Started pregnancy manually";
+        }else{
+            status.setConfirmed(true);
+            statusRepository.save(status);
+            pregnancyService.startPregnancy(user,status.getStartDate());
+            return "Started pregnancy manually after automatic detection";
         }
-    }*/
+    }
 
 }

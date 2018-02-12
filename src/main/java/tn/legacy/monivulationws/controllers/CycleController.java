@@ -2,8 +2,12 @@ package tn.legacy.monivulationws.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
+import tn.legacy.monivulationws.Util.DebugUtil;
 import tn.legacy.monivulationws.entities.Cycle;
 import tn.legacy.monivulationws.entities.User;
+import tn.legacy.monivulationws.enumerations.LengthName;
 import tn.legacy.monivulationws.exceptions.NotFoundException;
 import tn.legacy.monivulationws.services.CycleService;
 import tn.legacy.monivulationws.services.StatusService;
@@ -50,6 +54,36 @@ public class CycleController {
         if (user != null){
             cycleService.endCyclePeriod(user);
             return "success";
+        }else{
+            throw new NotFoundException("User of Id "+id+" Not found");
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/cycle/getAvgLength/{lengthName}/{id}")
+    public float getAverageLength (@PathVariable int id, @PathVariable LengthName lengthName) throws NotFoundException, MethodArgumentTypeMismatchException {
+        User user = userService.getUser(id);
+        if (user != null){
+            switch (lengthName){
+                case cycle:
+                    return cycleService.getAverageCycleLenght(user);
+                case period:
+                    return cycleService.getAveragePeriodLenght(user);
+                case follicular:
+                    return cycleService.getAverageFollicularLength(user);
+                case luteal:
+                    return cycleService.getAverageLutealLength(user);
+            }
+        }else{
+            throw new NotFoundException("User of Id "+id+" Not found");
+        }
+        return 0;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/cycle/periodInfo/{id}")
+    public PeriodInfo getPeriodInfo (@PathVariable int id) throws NotFoundException {
+        User user = userService.getUser(id);
+        if (user != null){
+            return cycleService.getPeriodInfo(user);
         }else{
             throw new NotFoundException("User of Id "+id+" Not found");
         }

@@ -13,6 +13,8 @@ public class Pregnancy {
     private int id;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime startDate;
+    private LocalDateTime finishDate;
+    private boolean isFinished;
 
 
     @OneToOne
@@ -37,6 +39,22 @@ public class Pregnancy {
         this.startDate = startDate;
     }
 
+    public LocalDateTime getFinishDate() {
+        return finishDate;
+    }
+
+    public void setFinishDate(LocalDateTime finishDate) {
+        this.finishDate = finishDate;
+    }
+
+    public boolean isFinished() {
+        return isFinished;
+    }
+
+    public void setFinished(boolean finished) {
+        isFinished = finished;
+    }
+
     public Cycle getCycle() {
         return cycle;
     }
@@ -44,4 +62,6 @@ public class Pregnancy {
     public void setCycle(Cycle cycle) {
         this.cycle = cycle;
     }
+
+
 }
