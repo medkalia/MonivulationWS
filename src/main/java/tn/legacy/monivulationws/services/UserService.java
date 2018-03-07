@@ -29,10 +29,13 @@ public class UserService {
         return users;
     }
 
-    public boolean login(Login login) {
+    public User login(Login login) {
         User user = userRepository.findUserByEmail(login.getEmail());
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        return passwordEncoder.matches(login.getPassword(), user.getPassword());
+        if (passwordEncoder.matches(login.getPassword(), user.getPassword())){
+            return user;
+        }
+        return null;
 
     }
 
