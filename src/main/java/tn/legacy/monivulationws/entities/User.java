@@ -19,6 +19,7 @@ public class User{
     private String lastName;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime birthDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime inscriptionDate;
     @OneToMany(mappedBy = "user")
     private List<TemperatureData> temperatureData;

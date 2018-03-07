@@ -51,7 +51,7 @@ public class UserService {
 
     }
 
-    public void updateUser(int id, User user) {
+    public void updateUser(User user) {
 
         //save does insert and update
 

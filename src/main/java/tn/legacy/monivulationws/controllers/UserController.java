@@ -28,9 +28,9 @@ public class UserController {
         userService.addUser(user);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "/users/{id}")
-    public void updateUser(@RequestBody User user, @PathVariable int id){
-        userService.updateUser(id, user);
+    @RequestMapping(method = RequestMethod.PUT, value = "/users")
+    public void updateUser(@RequestBody User user){
+        userService.updateUser(user);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/users/{id}")
