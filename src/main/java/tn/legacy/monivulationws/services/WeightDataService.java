@@ -2,7 +2,7 @@ package tn.legacy.monivulationws.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tn.legacy.monivulationws.entities.User;
+import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.WeightData;
 import tn.legacy.monivulationws.enumerations.DateSearchType;
 import tn.legacy.monivulationws.repositories.WeightDataRepository;
@@ -24,24 +24,24 @@ public class WeightDataService {
     }
 
     //return weight at specific date
-    public WeightData getWeightData (User user, LocalDateTime date, DateSearchType dateSearchType){
+    public WeightData getWeightData (AppUser appUser, LocalDateTime date, DateSearchType dateSearchType){
         switch (dateSearchType){
             case FullDate:
-                return weightDataRepository.findFirstByUserAndEntryDate(user,date);
+                return weightDataRepository.findFirstByAppUserAndEntryDate(appUser,date);
             case DayOnly:
                 LocalDate dateOnly = date.toLocalDate();
                 LocalDateTime startOfTheDay = dateOnly.atStartOfDay();
                 LocalDateTime endOfTheDay = dateOnly.atTime(23,59,59);
-                return weightDataRepository.findFirstByUserAndAndEntryDateBetween(user,startOfTheDay,endOfTheDay);
+                return weightDataRepository.findFirstByAppUserAndAndEntryDateBetween(appUser,startOfTheDay,endOfTheDay);
         }
         return null;
     }
 
-    //return weight between two dates of a specific user
-    public List<WeightData> getWeightDataBetween(User user, LocalDateTime startDate, LocalDateTime endDate, DateSearchType dateSearchType){
+    //return weight between two dates of a specific appUser
+    public List<WeightData> getWeightDataBetween(AppUser appUser, LocalDateTime startDate, LocalDateTime endDate, DateSearchType dateSearchType){
         switch (dateSearchType) {
             case FullDate:
-                return weightDataRepository.findAllByUserAndAndEntryDateBetween(user,startDate,endDate);
+                return weightDataRepository.findAllByAppUserAndAndEntryDateBetween(appUser,startDate,endDate);
             case DayOnly:
                 LocalDate start_DateOnly = startDate.toLocalDate();
                 LocalDateTime start_StartOfTheDay = start_DateOnly.atStartOfDay();
@@ -49,7 +49,7 @@ public class WeightDataService {
                 LocalDate end_DateOnly = endDate.toLocalDate();
                 LocalDateTime end_EndOfTheDay = end_DateOnly.atTime(23,59,59);
 
-                return weightDataRepository.findAllByUserAndAndEntryDateBetween(user,start_StartOfTheDay,end_EndOfTheDay);
+                return weightDataRepository.findAllByAppUserAndAndEntryDateBetween(appUser,start_StartOfTheDay,end_EndOfTheDay);
         }
 
         return  null;

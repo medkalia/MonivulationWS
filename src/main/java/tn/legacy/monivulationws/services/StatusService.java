@@ -3,10 +3,9 @@ package tn.legacy.monivulationws.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tn.legacy.monivulationws.Util.DateUtil;
-import tn.legacy.monivulationws.Util.DebugUtil;
+import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Status;
 import tn.legacy.monivulationws.entities.TemperatureData;
-import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.enumerations.DurationType;
 import tn.legacy.monivulationws.enumerations.StatusName;
 import tn.legacy.monivulationws.repositories.StatusRepository;
@@ -27,7 +26,7 @@ public class StatusService {
     private PregnancyService pregnancyService;
 
     //create status for first time
-    public void createFirstStatus(User user, LocalDateTime startDate){
+    public void createFirstStatus(AppUser appUser, LocalDateTime startDate){
         Status newStatus = new Status();
         StatusName currentStatusName = DateUtil.getDurationBetween(
                 startDate,
@@ -38,27 +37,27 @@ public class StatusService {
         newStatus.setName(currentStatusName);
         newStatus.setStartDate(startDate);
         newStatus.setConfirmed(isStatusConfirmed);
-        newStatus.setUser(user);
+        newStatus.setAppUser(appUser);
 
         statusRepository.save(newStatus);
     }
 
-    //return status of user
-    public Status getStatus(User user) {
-        return statusRepository.findByUser(user);
+    //return status of appUser
+    public Status getStatus(AppUser appUser) {
+        return statusRepository.findByAppUser(appUser);
     }
 
     //Called after each temperature data entry to update status if needed
     public String checkStatus(TemperatureData temperatureData){
-        User user = temperatureData.getUser();
-        Status status = getStatus(user);
+        AppUser appUser = temperatureData.getAppUser();
+        Status status = getStatus(appUser);
         switch (status.getName()){
             case follicular:
                 if (temperatureData.getValue() >= DEFAULT_SWITCH_TEMPERATURE ){
                     status.setName(StatusName.luteal);
                     /*TEST*/ status.setStartDate(DateUtil.parseDate("16-01-2018 08:00:00"));
                     //status.setStartDate(DateUtil.getCurrentDateTime());
-                    cycleService.updateFollicularLength(user);
+                    cycleService.updateFollicularLength(appUser);
                     statusRepository.save(status);
                     return "Temperature higher than 37 C° : Luteal phase started";
                 }
@@ -70,16 +69,16 @@ public class StatusService {
                     //status.setStartDate(DateUtil.getCurrentDateTime());
                     status.setConfirmed(false);
                     statusRepository.save(status);
-                    return "Temperature lower than 37 C° : waiting for user confirmation of new cycle start";
+                    return "Temperature lower than 37 C° : waiting for appUser confirmation of new cycle start";
                 }
                 else if (temperatureData.getValue() > DEFAULT_SWITCH_TEMPERATURE &&
-                        DateUtil.getDurationBetween(status.getStartDate(), DateUtil.getCurrentDateTime(),DurationType.Days) > cycleService.getAverageLutealLength(user)){
+                        DateUtil.getDurationBetween(status.getStartDate(), DateUtil.getCurrentDateTime(),DurationType.Days) > cycleService.getAverageLutealLength(appUser)){
                     status.setName(StatusName.pregnancy);
                     /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
                     status.setStartDate(DateUtil.getCurrentDateTime());
                     status.setConfirmed(false);
                     statusRepository.save(status);
-                    return "Temperature still higher than 37 C° and period delayed: waiting for user confirmation of pregnancy";
+                    return "Temperature still higher than 37 C° and period delayed: waiting for appUser confirmation of pregnancy";
                 }
             case pregnancy:
                 if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
@@ -88,39 +87,39 @@ public class StatusService {
                     //status.setStartDate(DateUtil.getCurrentDateTime());
                     status.setConfirmed(false);
                     statusRepository.save(status);
-                    return "Temperature lower than 37 C° : not pregnant, waiting for user confirmation of new cycle start";
+                    return "Temperature lower than 37 C° : not pregnant, waiting for appUser confirmation of new cycle start";
                 }
         break;
         }
         return "No changed were applied";
     }
 
-    //This is called when user confirms having her period
-    public String confirmStartCycle(User user){
-        Status status = getStatus(user);
+    //This is called when appUser confirms having her period
+    public String confirmStartCycle(AppUser appUser){
+        Status status = getStatus(appUser);
         /*TEST*/ status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
         //status.setStartDate(DateUtil.getCurrentDateTime());
         status.setConfirmed(true);
         statusRepository.save(status);
-        cycleService.updateLutealLength(user);
-        cycleService.startCycle(user);
+        cycleService.updateLutealLength(appUser);
+        cycleService.startCycle(appUser);
         return "Start of new cycle confirmed";
     }
 
-    //This is called when user confirms being pregnant
-    public String confirmPregnancy (User user){
-        Status status = getStatus(user);
+    //This is called when appUser confirms being pregnant
+    public String confirmPregnancy (AppUser appUser){
+        Status status = getStatus(appUser);
         if (status.getName() !=  StatusName.pregnancy){
             status.setName(StatusName.pregnancy);
             status.setStartDate(DateUtil.getCurrentDateTime());
             status.setConfirmed(true);
             statusRepository.save(status);
-            pregnancyService.startPregnancy(user);
+            pregnancyService.startPregnancy(appUser);
             return "Started pregnancy manually";
         }else{
             status.setConfirmed(true);
             statusRepository.save(status);
-            pregnancyService.startPregnancy(user,status.getStartDate());
+            pregnancyService.startPregnancy(appUser,status.getStartDate());
             return "Started pregnancy manually after automatic detection";
         }
     }

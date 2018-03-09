@@ -8,12 +8,13 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class User{
+public class AppUser {
 
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
     private String email;
+    private String username;
     private String password;
     private String firstName;
     private String lastName;
@@ -21,17 +22,18 @@ public class User{
     private LocalDateTime birthDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime inscriptionDate;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "appUser")
     private List<TemperatureData> temperatureData;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "appUser")
     private List<WeightData> weightData;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "appUser")
     private List<Cycle> cycleData;
 
-    public User() {
+    public AppUser() {
     }
 
-    public User(String email, String password, String firstName, String lastName, LocalDateTime birthDate, LocalDateTime inscriptionDate) {
+    public AppUser(String email, String username, String password, String firstName, String lastName, LocalDateTime birthDate, LocalDateTime inscriptionDate) {
+        this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -46,6 +48,14 @@ public class User{
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getFirstName() {

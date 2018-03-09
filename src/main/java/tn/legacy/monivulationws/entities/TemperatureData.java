@@ -17,7 +17,7 @@ public class TemperatureData {
     private float value;
     @ManyToOne
     @JsonIgnore
-    private User user;
+    private AppUser appUser;
 
     public TemperatureData() {
     }
@@ -27,10 +27,10 @@ public class TemperatureData {
         this.value = value;
     }
 
-    public TemperatureData(LocalDateTime entryDate, float value, User user) {
+    public TemperatureData(LocalDateTime entryDate, float value, AppUser appUser) {
         this.entryDate = entryDate;
         this.value = value;
-        this.user = user;
+        this.appUser = appUser;
     }
 
     public int getId() {
@@ -57,11 +57,11 @@ public class TemperatureData {
         this.value = value;
     }
 
-    public User getUser() {
-        return user;
+    public AppUser getAppUser() {
+        return appUser;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
     }
 }
