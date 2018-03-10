@@ -44,23 +44,35 @@ public class UserService {
         //return users.stream().filter(t->t.getId()==id).findFirst().get();     ==> this is for hard coded data
     }
 
-    public void addUser(AppUser user){
+    public String addUser(AppUser user){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        AppUser addedUser = userRepository.save(user);
+        if (addedUser!=null)
+            return "success";
+        return "failed to create a new user";
 
     }
 
-    public void updateUser(AppUser user) {
+    public String updateUser(AppUser user) {
 
         //save does insert and update
 
-        userRepository.save(user);
+        AppUser updatedUser = userRepository.save(user);
+        if (updatedUser!=null)
+            return "success";
+        return "failed to update user";
 
     }
 
-    public void deleteUser(int id) {
-        userRepository.delete(id);
+    public String deleteUser(int id) {
+        AppUser userToDelete = userRepository.findOne(id);
+        if (userToDelete!=null){
+            userRepository.delete(id);
+            return "success";
+        }
+        return "failed to delete user";
+
         //hard coded data
         //users.removeIf(t->t.getId()==id);
     }
