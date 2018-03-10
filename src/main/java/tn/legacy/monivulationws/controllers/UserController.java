@@ -24,18 +24,18 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/users")
-    public void addUser(@RequestBody User user){
-        userService.addUser(user);
+    public String addUser(@RequestBody User user){
+        return userService.addUser(user);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/users")
-    public void updateUser(@RequestBody User user){
-        userService.updateUser(user);
+    public String  updateUser(@RequestBody User user){
+        return userService.updateUser(user);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/users/{id}")
-    public void deleteUser(@PathVariable int id){
-        userService.deleteUser(id);
+    public String deleteUser(@PathVariable int id){
+        return userService.deleteUser(id);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
