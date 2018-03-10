@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 public class WeightData {
@@ -18,15 +17,15 @@ public class WeightData {
     private float value;
     @ManyToOne
     @JsonIgnore
-    private User user;
+    private AppUser appUser;
 
     public WeightData() {
     }
 
-    public WeightData(LocalDateTime entryDate, float value, User user) {
+    public WeightData(LocalDateTime entryDate, float value, AppUser appUser) {
         this.entryDate = entryDate;
         this.value = value;
-        this.user = user;
+        this.appUser = appUser;
     }
 
     public int getId() {
@@ -53,11 +52,11 @@ public class WeightData {
         this.value = value;
     }
 
-    public User getUser() {
-        return user;
+    public AppUser getAppUser() {
+        return appUser;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
     }
 }

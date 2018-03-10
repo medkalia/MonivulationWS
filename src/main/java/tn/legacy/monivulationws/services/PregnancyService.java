@@ -3,9 +3,9 @@ package tn.legacy.monivulationws.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tn.legacy.monivulationws.Util.DateUtil;
+import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
 import tn.legacy.monivulationws.entities.Pregnancy;
-import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.repositories.PregnancyRepository;
 
 import java.time.LocalDateTime;
@@ -23,9 +23,9 @@ public class PregnancyService {
 
     //---------------CRUD---------------
     //Create at current date
-    public void startPregnancy (User user){
+    public void startPregnancy (AppUser appUser){
         Pregnancy newPregnancy = new Pregnancy();
-        Cycle currentCycle = cycleService.getCycle(user);
+        Cycle currentCycle = cycleService.getCycle(appUser);
 
         newPregnancy.setStartDate(DateUtil.getCurrentDateTime());
         newPregnancy.setFinishDate(newPregnancy.getStartDate().plusMonths(DEFAULT_PREGNANCY_LENGTH));
@@ -36,9 +36,9 @@ public class PregnancyService {
     }
 
     //Create at specified date
-    public void startPregnancy (User user, LocalDateTime startDate){
+    public void startPregnancy (AppUser appUser, LocalDateTime startDate){
         Pregnancy newPregnancy = new Pregnancy();
-        Cycle currentCycle = cycleService.getCycle(user);
+        Cycle currentCycle = cycleService.getCycle(appUser);
 
         newPregnancy.setStartDate(startDate);
         newPregnancy.setFinishDate(startDate.plusMonths(DEFAULT_PREGNANCY_LENGTH));
@@ -47,17 +47,17 @@ public class PregnancyService {
 
         pregnancyRepository.save(newPregnancy);
     }
-    //Get by user
-    public Pregnancy getPregnancy (User user){
-        return pregnancyRepository.findByCycle(cycleService.getCycle(user));
+    //Get by appUser
+    public Pregnancy getPregnancy (AppUser appUser){
+        return pregnancyRepository.findByCycle(cycleService.getCycle(appUser));
     }
     //Get by cycle
     public Pregnancy getPregnancy (Cycle cycle){
         return pregnancyRepository.findByCycle(cycle);
     }
-    //Get ongoing by user
-    public Pregnancy getCurrentPregnancy (User user){
-        return pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(user), false);
+    //Get ongoing by appUser
+    public Pregnancy getCurrentPregnancy (AppUser appUser){
+        return pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(appUser), false);
     }
     //Get ongoing by cycle
     public Pregnancy getCurrentPregnancy (Cycle cycle){
@@ -66,8 +66,8 @@ public class PregnancyService {
     //------------------------------------------
     //---------------Operations---------------
     //Confirm the end of a pregnancy
-    public void confirmFinishedPregnancy (User user){
-        Pregnancy pregnancyToFinish = pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(user),false);
+    public void confirmFinishedPregnancy (AppUser appUser){
+        Pregnancy pregnancyToFinish = pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(appUser),false);
         if (pregnancyToFinish != null){
             pregnancyToFinish.setFinished(true);
             pregnancyToFinish.setFinishDate(DateUtil.getCurrentDateTime());

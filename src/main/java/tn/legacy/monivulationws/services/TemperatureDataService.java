@@ -2,8 +2,8 @@ package tn.legacy.monivulationws.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.TemperatureData;
-import tn.legacy.monivulationws.entities.User;
 import tn.legacy.monivulationws.enumerations.DateSearchType;
 import tn.legacy.monivulationws.repositories.TemperatureDataRepository;
 
@@ -28,24 +28,24 @@ public class TemperatureDataService {
     }
 
     //return temperature at specific date
-    public TemperatureData getTemperatureData (User user, LocalDateTime date, DateSearchType dateSearchType){
+    public TemperatureData getTemperatureData (AppUser appUser, LocalDateTime date, DateSearchType dateSearchType){
         switch (dateSearchType){
             case FullDate:
-                return temperatureDataRepository.findFirstByUserAndEntryDate(user,date);
+                return temperatureDataRepository.findFirstByAppUserAndEntryDate(appUser,date);
             case DayOnly:
                 LocalDate dateOnly = date.toLocalDate();
                 LocalDateTime startOfTheDay = dateOnly.atStartOfDay();
                 LocalDateTime endOfTheDay = dateOnly.atTime(23,59,59);
-                return temperatureDataRepository.findFirstByUserAndAndEntryDateBetween(user,startOfTheDay,endOfTheDay);
+                return temperatureDataRepository.findFirstByAppUserAndAndEntryDateBetween(appUser,startOfTheDay,endOfTheDay);
         }
         return null;
     }
 
-    //return temperature between two dates of a specific user
-    public List<TemperatureData> getTemperatureDataBetween(User user, LocalDateTime startDate, LocalDateTime endDate, DateSearchType dateSearchType){
+    //return temperature between two dates of a specific appUser
+    public List<TemperatureData> getTemperatureDataBetween(AppUser appUser, LocalDateTime startDate, LocalDateTime endDate, DateSearchType dateSearchType){
         switch (dateSearchType) {
             case FullDate:
-                return temperatureDataRepository.findAllByUserAndAndEntryDateBetween(user,startDate,endDate);
+                return temperatureDataRepository.findAllByAppUserAndAndEntryDateBetween(appUser,startDate,endDate);
             case DayOnly:
                 LocalDate start_DateOnly = startDate.toLocalDate();
                 LocalDateTime start_StartOfTheDay = start_DateOnly.atStartOfDay();
@@ -53,7 +53,7 @@ public class TemperatureDataService {
                 LocalDate end_DateOnly = endDate.toLocalDate();
                 LocalDateTime end_EndOfTheDay = end_DateOnly.atTime(23,59,59);
 
-                return temperatureDataRepository.findAllByUserAndAndEntryDateBetween(user,start_StartOfTheDay,end_EndOfTheDay);
+                return temperatureDataRepository.findAllByAppUserAndAndEntryDateBetween(appUser,start_StartOfTheDay,end_EndOfTheDay);
         }
 
         return  null;

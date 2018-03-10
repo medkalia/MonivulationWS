@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import tn.legacy.monivulationws.CustomClasses.Login;
-import tn.legacy.monivulationws.entities.User;
+import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.repositories.UserRepository;
 
 import java.util.ArrayList;
@@ -23,14 +23,14 @@ public class UserService {
 
     // CRUD
 
-    public List<User> getUsers() {
-        List<User> users = new ArrayList<>();
+    public List<AppUser> getUsers() {
+        List<AppUser> users = new ArrayList<>();
         userRepository.findAll().forEach(users::add);
         return users;
     }
 
-    public User login(Login login) {
-        User user = userRepository.findUserByEmail(login.getEmail());
+    public AppUser login(Login login) {
+        AppUser user = userRepository.findAppUserByEmail(login.getEmail());
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         if (passwordEncoder.matches(login.getPassword(), user.getPassword())){
             return user;
@@ -39,43 +39,28 @@ public class UserService {
 
     }
 
-    public User getUser(int id) {
+    public AppUser getUser(int id) {
         return userRepository.findOne(id);
         //return users.stream().filter(t->t.getId()==id).findFirst().get();     ==> this is for hard coded data
     }
 
-    public String addUser(User user){
+    public void addUser(AppUser user){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User addedUser = userRepository.save(user);
-        if (addedUser!=null)
-            return "success";
-        return "failed to create a new user";
+        userRepository.save(user);
 
     }
 
-    public String updateUser(User user) {
+    public void updateUser(AppUser user) {
 
         //save does insert and update
-        User updatedUser = userRepository.save(user);
-        if (updatedUser!=null)
-            return "success";
-        return "failed to update user";
+
+        userRepository.save(user);
 
     }
 
-    public String deleteUser(int id) {
-        User userToDelete = userRepository.findOne(id);
-        if (userToDelete!=null)
-        {
-            userRepository.delete(id);
-            return "success";
-        }
-        return "failed to delete user";
-
-
-
-
+    public void deleteUser(int id) {
+        userRepository.delete(id);
         //hard coded data
         //users.removeIf(t->t.getId()==id);
     }
