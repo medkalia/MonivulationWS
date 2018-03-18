@@ -13,6 +13,7 @@ public class AppUser {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
+    @Column(name="email", unique=true)
     private String email;
     private String username;
     private String password;

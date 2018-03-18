@@ -29,13 +29,21 @@ public class UserService {
         return users;
     }
 
-    public AppUser login(Login login) {
-        AppUser user = userRepository.findAppUserByEmail(login.getEmail());
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        if (passwordEncoder.matches(login.getPassword(), user.getPassword())){
-            return user;
+    public boolean login(Login login) {
+        AppUser user;
+        try {
+            user = userRepository.findAppUserByEmail(login.getEmail());
+        } catch (Exception e) {
+            user = null;
         }
-        return null;
+        if (user != null) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            if (passwordEncoder.matches(login.getPassword(), user.getPassword())) {
+                return true;
+            }
+        }
+        return false;
+
 
     }
 
@@ -44,11 +52,11 @@ public class UserService {
         //return users.stream().filter(t->t.getId()==id).findFirst().get();     ==> this is for hard coded data
     }
 
-    public String addUser(AppUser user){
+    public String addUser(AppUser user) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         AppUser addedUser = userRepository.save(user);
-        if (addedUser!=null)
+        if (addedUser != null)
             return "success";
         return "failed to create a new user";
 
@@ -59,7 +67,7 @@ public class UserService {
         //save does insert and update
 
         AppUser updatedUser = userRepository.save(user);
-        if (updatedUser!=null)
+        if (updatedUser != null)
             return "success";
         return "failed to update user";
 
@@ -67,7 +75,7 @@ public class UserService {
 
     public String deleteUser(int id) {
         AppUser userToDelete = userRepository.findOne(id);
-        if (userToDelete!=null){
+        if (userToDelete != null) {
             userRepository.delete(id);
             return "success";
         }

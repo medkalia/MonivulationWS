@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
-    public AppUser login(@RequestBody Login login){
+    public boolean login(@RequestBody Login login){
         return userService.login(login);
     }
 }
