@@ -29,7 +29,7 @@ public class UserService {
         return users;
     }
 
-    public boolean login(Login login) {
+    public AppUser login(Login login) {
         AppUser user;
         try {
             user = userRepository.findAppUserByEmail(login.getEmail());
@@ -38,11 +38,10 @@ public class UserService {
         }
         if (user != null) {
             BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            if (passwordEncoder.matches(login.getPassword(), user.getPassword())) {
-                return true;
-            }
+            if (passwordEncoder.matches(login.getPassword(), user.getPassword()))
+                return user;
         }
-        return false;
+        return null;
 
 
     }
@@ -52,13 +51,13 @@ public class UserService {
         //return users.stream().filter(t->t.getId()==id).findFirst().get();     ==> this is for hard coded data
     }
 
-    public String addUser(AppUser user) {
+    public AppUser addUser(AppUser user) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         AppUser addedUser = userRepository.save(user);
         if (addedUser != null)
-            return "success";
-        return "failed to create a new user";
+            return addedUser;
+        return null;
 
     }
 

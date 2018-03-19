@@ -25,7 +25,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/users")
-    public String addUser(@RequestBody AppUser user){
+    public AppUser addUser(@RequestBody AppUser user){
         return userService.addUser(user);
     }
 
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
-    public boolean login(@RequestBody Login login){
+    public AppUser login(@RequestBody Login login){
         return userService.login(login);
     }
 }
