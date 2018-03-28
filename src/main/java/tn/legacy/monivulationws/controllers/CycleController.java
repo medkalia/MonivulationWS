@@ -26,13 +26,15 @@ public class CycleController {
     @RequestMapping(method = RequestMethod.POST, value = "/cycle/first/{id}")
     public String addFirstCycle (@RequestBody Cycle newCycle, @PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
+        String returnMessage = "";
         if (appUser != null){
             newCycle.setAppUser(appUser);
-            cycleService.saveFirstCycle(newCycle);
-            statusService.createFirstStatus(appUser,newCycle.getStartDate());
-            return "success";
+            returnMessage+= cycleService.saveFirstCycle(newCycle);
+            returnMessage += " - " + statusService.createFirstStatus(appUser,newCycle.getStartDate());
+            return returnMessage;
         }else{
-            throw new NotFoundException("AppUser of Id "+id+" Not found");
+            returnMessage = "AppUser of Id "+id+" Not found";
+            throw new NotFoundException(returnMessage);
         }
     }
 
@@ -40,8 +42,7 @@ public class CycleController {
     public String startCyclePeriod (@PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            statusService.confirmStartCycle(appUser);
-            return "success";
+            return statusService.confirmStartCycle(appUser);
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }
@@ -51,8 +52,7 @@ public class CycleController {
     public String endCyclePeriod (@PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            cycleService.endCyclePeriod(appUser);
-            return "success";
+            return cycleService.endCyclePeriod(appUser);
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }

@@ -15,6 +15,7 @@ public class AppUser {
     private int id;
     @Column(name="email", unique=true)
     private String email;
+    @Column(unique=true)
     private String username;
     private String password;
     private String firstName;
@@ -29,18 +30,24 @@ public class AppUser {
     private List<WeightData> weightData;
     @OneToMany(mappedBy = "appUser")
     private List<Cycle> cycleData;
+    @OneToOne(mappedBy = "appUser")
+    private Status status;
 
     public AppUser() {
     }
 
-    public AppUser(String email, String username, String password, String firstName, String lastName, LocalDateTime birthDate, LocalDateTime inscriptionDate) {
-        this.username = username;
+    public AppUser(String email, String username, String password, String firstName, String lastName, LocalDateTime birthDate, LocalDateTime inscriptionDate, List<TemperatureData> temperatureData, List<WeightData> weightData, List<Cycle> cycleData, Status status) {
         this.email = email;
+        this.username = username;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.inscriptionDate = inscriptionDate;
+        this.temperatureData = temperatureData;
+        this.weightData = weightData;
+        this.cycleData = cycleData;
+        this.status = status;
     }
 
     public int getId() {
@@ -130,4 +137,13 @@ public class AppUser {
     public void setCycleData(List<Cycle> cycleData) {
         this.cycleData = cycleData;
     }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }
+

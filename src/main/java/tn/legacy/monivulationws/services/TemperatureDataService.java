@@ -20,11 +20,17 @@ public class TemperatureDataService {
     @Autowired
     private StatusService statusService;
 
-    //---------------CRUD---------------
-    public void addTemperatureData(TemperatureData temperatureData){
-        temperatureDataRepository.save(temperatureData);
+    @Autowired
+    private CycleService cycleService;
 
-        statusService.checkStatus(temperatureData);
+    //---------------CRUD---------------
+    public String  addTemperatureData(TemperatureData temperatureData){
+        if (statusService.getStatus(temperatureData.getAppUser()) != null && cycleService.getCycle(temperatureData.getAppUser()) != null){
+            temperatureDataRepository.save(temperatureData);
+            return statusService.checkStatus(temperatureData);
+        }
+        return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + temperatureData.getAppUser().getId();
+
     }
 
     //return temperature at specific date
@@ -49,7 +55,6 @@ public class TemperatureDataService {
             case DayOnly:
                 LocalDate start_DateOnly = startDate.toLocalDate();
                 LocalDateTime start_StartOfTheDay = start_DateOnly.atStartOfDay();
-
                 LocalDate end_DateOnly = endDate.toLocalDate();
                 LocalDateTime end_EndOfTheDay = end_DateOnly.atTime(23,59,59);
 

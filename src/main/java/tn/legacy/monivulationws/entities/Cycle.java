@@ -23,7 +23,7 @@ public class Cycle {
     private float follicularLength;
     private float lutealLength;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JsonIgnore
     private AppUser appUser;
 

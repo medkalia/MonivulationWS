@@ -25,8 +25,7 @@ public class TemperatureDataController {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
             temperatureData.setAppUser(appUser);
-            temperatureDataService.addTemperatureData(temperatureData);
-            return "success";
+            return temperatureDataService.addTemperatureData(temperatureData);
         }else{
                 throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }

@@ -17,8 +17,8 @@ public class Status {
     @Enumerated(EnumType.STRING)
     private StatusName name;
     private boolean isConfirmed;
-
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "app_user_id", nullable = false)
     private AppUser appUser;
 
     public Status() {

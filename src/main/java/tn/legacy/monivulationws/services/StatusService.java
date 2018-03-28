@@ -26,20 +26,26 @@ public class StatusService {
     private PregnancyService pregnancyService;
 
     //create status for first time
-    public void createFirstStatus(AppUser appUser, LocalDateTime startDate){
-        Status newStatus = new Status();
-        StatusName currentStatusName = DateUtil.getDurationBetween(
-                startDate,
-                DateUtil.getCurrentDateTime(),
-                DurationType.Days) < CycleService.DEFAULT_FOLLICULAR_LENGTH ? StatusName.follicular : StatusName.luteal ;
-        Boolean isStatusConfirmed = true;
+    public String createFirstStatus(AppUser appUser, LocalDateTime startDate){
+        if (statusRepository.findByAppUser(appUser) == null){
+            Status newStatus = new Status();
+            StatusName currentStatusName = DateUtil.getDurationBetween(
+                    startDate,
+                    DateUtil.getCurrentDateTime(),
+                    DurationType.Days) < CycleService.DEFAULT_FOLLICULAR_LENGTH ? StatusName.follicular : StatusName.luteal ;
 
-        newStatus.setName(currentStatusName);
-        newStatus.setStartDate(startDate);
-        newStatus.setConfirmed(isStatusConfirmed);
-        newStatus.setAppUser(appUser);
+            newStatus.setName(currentStatusName);
+            newStatus.setStartDate(startDate);
+            newStatus.setConfirmed(true);
+            newStatus.setAppUser(appUser);
 
-        statusRepository.save(newStatus);
+            statusRepository.save(newStatus);
+
+            return "Status created";
+        }
+
+        return  "Status already exists";
+
     }
 
     //return status of appUser
@@ -55,8 +61,8 @@ public class StatusService {
             case follicular:
                 if (temperatureData.getValue() >= DEFAULT_SWITCH_TEMPERATURE ){
                     status.setName(StatusName.luteal);
-                    /*TEST*/ status.setStartDate(DateUtil.parseDate("16-01-2018 08:00:00"));
-                    //status.setStartDate(DateUtil.getCurrentDateTime());
+                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("16-01-2018 08:00:00"));
+                    status.setStartDate(DateUtil.getCurrentDateTime());
                     cycleService.updateFollicularLength(appUser);
                     statusRepository.save(status);
                     return "Temperature higher than 37 C° : Luteal phase started";
@@ -65,8 +71,8 @@ public class StatusService {
             case luteal:
                 if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
                     status.setName(StatusName.follicular);
-                    /*TEST*/ status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
-                    //status.setStartDate(DateUtil.getCurrentDateTime());
+                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                    status.setStartDate(DateUtil.getCurrentDateTime());
                     status.setConfirmed(false);
                     statusRepository.save(status);
                     return "Temperature lower than 37 C° : waiting for appUser confirmation of new cycle start";
@@ -83,8 +89,8 @@ public class StatusService {
             case pregnancy:
                 if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
                     status.setName(StatusName.follicular);
-                    /*TEST*/ status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
-                    //status.setStartDate(DateUtil.getCurrentDateTime());
+                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                    status.setStartDate(DateUtil.getCurrentDateTime());
                     status.setConfirmed(false);
                     statusRepository.save(status);
                     return "Temperature lower than 37 C° : not pregnant, waiting for appUser confirmation of new cycle start";
@@ -97,31 +103,37 @@ public class StatusService {
     //This is called when appUser confirms having her period
     public String confirmStartCycle(AppUser appUser){
         Status status = getStatus(appUser);
-        /*TEST*/ status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
-        //status.setStartDate(DateUtil.getCurrentDateTime());
-        status.setConfirmed(true);
-        statusRepository.save(status);
-        cycleService.updateLutealLength(appUser);
-        cycleService.startCycle(appUser);
-        return "Start of new cycle confirmed";
+        if (status != null && cycleService.getCycle(appUser) != null){
+            /*TEST*/ //status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
+            status.setStartDate(DateUtil.getCurrentDateTime());
+            status.setConfirmed(true);
+            statusRepository.save(status);
+            cycleService.updateLutealLength(appUser);
+            cycleService.startCycle(appUser);
+            return "Start of new cycle confirmed";
+        }
+        return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + appUser.getId();
     }
 
     //This is called when appUser confirms being pregnant
     public String confirmPregnancy (AppUser appUser){
         Status status = getStatus(appUser);
-        if (status.getName() !=  StatusName.pregnancy){
-            status.setName(StatusName.pregnancy);
-            status.setStartDate(DateUtil.getCurrentDateTime());
-            status.setConfirmed(true);
-            statusRepository.save(status);
-            pregnancyService.startPregnancy(appUser);
-            return "Started pregnancy manually";
-        }else{
-            status.setConfirmed(true);
-            statusRepository.save(status);
-            pregnancyService.startPregnancy(appUser,status.getStartDate());
-            return "Started pregnancy manually after automatic detection";
+        if (status != null && cycleService.getCycle(appUser) != null){
+            if (status.getName() !=  StatusName.pregnancy){
+                status.setName(StatusName.pregnancy);
+                status.setStartDate(DateUtil.getCurrentDateTime());
+                status.setConfirmed(true);
+                statusRepository.save(status);
+                pregnancyService.startPregnancy(appUser);
+                return "Started pregnancy manually";
+            }else{
+                status.setConfirmed(true);
+                statusRepository.save(status);
+                pregnancyService.startPregnancy(appUser,status.getStartDate());
+                return "Started pregnancy manually after automatic detection";
+            }
         }
+        return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + appUser.getId();
     }
 
 }
