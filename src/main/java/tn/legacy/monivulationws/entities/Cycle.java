@@ -24,7 +24,7 @@ public class Cycle {
     private float lutealLength;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
-    @JsonIgnore
+    //@JsonIgnore
     private AppUser appUser;
 
     @OneToOne

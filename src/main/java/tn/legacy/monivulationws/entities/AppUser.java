@@ -1,6 +1,7 @@
 package tn.legacy.monivulationws.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -24,13 +25,14 @@ public class AppUser {
     private LocalDateTime birthDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime inscriptionDate;
-    @OneToMany(mappedBy = "appUser")
+    /*@OneToMany(mappedBy = "appUser")
     private List<TemperatureData> temperatureData;
     @OneToMany(mappedBy = "appUser")
     private List<WeightData> weightData;
     @OneToMany(mappedBy = "appUser")
-    private List<Cycle> cycleData;
+    private List<Cycle> cycleData;*/
     @OneToOne(mappedBy = "appUser")
+    @JsonIgnore
     private Status status;
 
     public AppUser() {
@@ -44,9 +46,9 @@ public class AppUser {
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.inscriptionDate = inscriptionDate;
-        this.temperatureData = temperatureData;
+        /*this.temperatureData = temperatureData;
         this.weightData = weightData;
-        this.cycleData = cycleData;
+        this.cycleData = cycleData;*/
         this.status = status;
     }
 
@@ -114,7 +116,7 @@ public class AppUser {
         this.inscriptionDate = inscriptionDate;
     }
 
-    public List<TemperatureData> getTemperatureData() {
+    /*public List<TemperatureData> getTemperatureData() {
         return temperatureData;
     }
 
@@ -136,7 +138,7 @@ public class AppUser {
 
     public void setCycleData(List<Cycle> cycleData) {
         this.cycleData = cycleData;
-    }
+    }*/
 
     public Status getStatus() {
         return status;

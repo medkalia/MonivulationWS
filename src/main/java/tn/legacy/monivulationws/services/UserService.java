@@ -54,11 +54,12 @@ public class UserService {
     public AppUser addUser(AppUser user) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        AppUser addedUser = userRepository.save(user);
-        if (addedUser != null)
-            return addedUser;
+        if (userRepository.findAppUserByEmail(user.getEmail()) == null ){
+            AppUser addedUser = userRepository.save(user);
+            if (addedUser != null)
+                return addedUser;
+        }
         return null;
-
     }
 
     public String updateUser(AppUser user) {

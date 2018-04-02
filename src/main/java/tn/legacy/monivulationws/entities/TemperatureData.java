@@ -16,7 +16,7 @@ public class TemperatureData {
     private LocalDateTime entryDate;
     private float value;
     @ManyToOne
-    @JsonIgnore
+    //@JsonIgnore
     private AppUser appUser;
 
     public TemperatureData() {

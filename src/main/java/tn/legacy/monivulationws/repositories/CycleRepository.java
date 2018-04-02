@@ -2,25 +2,32 @@ package tn.legacy.monivulationws.repositories;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface CycleRepository extends CrudRepository<Cycle, Integer> {
 
     Cycle findByAppUser (AppUser appUser);
 
-    Cycle findByAppUserAndStartDate(AppUser appUser, LocalDateTime startDate);
+    List<Cycle> findAllByAppUser (AppUser appUser);
+
+    Cycle findFirstByAppUserAndStartDate(AppUser appUser, LocalDateTime startDate);
 
     @Query("select count (c.id) from Cycle c where c.appUser = ?1")
     float getCycleCount(AppUser appUser);
 
     @Query("select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = ?1 and cc.startDate < ?2)")
-    Cycle getFirstCycleBefore (AppUser appUser, LocalDateTime date);
+    List<Cycle> getFirstCycleBefore (AppUser appUser, LocalDateTime date);
 
-    @Query(nativeQuery = true, value ="select * from cycle c where c.start_date = (select max(cc.start_date) from cycle cc where cc.app_user_id = 1) limit ?1")
-    Cycle getLastCycle(int app_user_id);
+    @Query("select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = ?1 and cc.startDate <= ?2)")
+    List<Cycle> getFirstCycleBeforeOrAt (AppUser appUser, LocalDateTime date);
+
+    @Query(value ="select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = :targetUser)")
+    List<Cycle> getLastCycle(@Param("targetUser") AppUser appUser);
 
     @Query("select AVG(c.length) from Cycle c where c.appUser = ?1 and c.pregnancy = null")
     float getAverageCycleLenght(AppUser appUser);
