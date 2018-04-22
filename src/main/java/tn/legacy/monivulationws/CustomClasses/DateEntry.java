@@ -4,19 +4,22 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
-public class StartEndDate {
+public class DateEntry {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     LocalDateTime startDate ;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     LocalDateTime endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    LocalDateTime entryDate;
 
-    public StartEndDate() {
+    public DateEntry() {
     }
 
-    public StartEndDate(LocalDateTime startDate, LocalDateTime endDate) {
+    public DateEntry(LocalDateTime startDate, LocalDateTime endDate, LocalDateTime entryDate) {
         this.startDate = startDate;
         this.endDate = endDate;
+        this.entryDate = entryDate;
     }
 
     public LocalDateTime getStartDate() {
@@ -33,5 +36,13 @@ public class StartEndDate {
 
     public void setEndDate(LocalDateTime endDate) {
         this.endDate = endDate;
+    }
+
+    public LocalDateTime getEntryDate() {
+        return entryDate;
+    }
+
+    public void setEntryDate(LocalDateTime entryDate) {
+        this.entryDate = entryDate;
     }
 }

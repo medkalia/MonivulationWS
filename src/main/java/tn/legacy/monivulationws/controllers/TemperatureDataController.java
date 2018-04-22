@@ -2,7 +2,7 @@ package tn.legacy.monivulationws.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import tn.legacy.monivulationws.CustomClasses.StartEndDate;
+import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.TemperatureData;
 import tn.legacy.monivulationws.enumerations.DateSearchType;
@@ -32,10 +32,10 @@ public class TemperatureDataController {
     }
 
     @RequestMapping(value = "/temperatureData/getBetween/{id}")
-    public List<TemperatureData> getAllTemperatureDataBetween(@PathVariable int id, @RequestBody StartEndDate startEndDate) throws NotFoundException{
+    public List<TemperatureData> getAllTemperatureDataBetween(@PathVariable int id, @RequestBody DateEntry dateEntry) throws NotFoundException{
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return temperatureDataService.getTemperatureDataBetween(appUser,startEndDate.getStartDate(),startEndDate.getEndDate(),DateSearchType.DayOnly);
+            return temperatureDataService.getTemperatureDataBetween(appUser, dateEntry.getStartDate(), dateEntry.getEndDate(),DateSearchType.DayOnly);
         }else{
             throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }

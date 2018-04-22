@@ -42,8 +42,6 @@ public class UserService {
                 return user;
         }
         return null;
-
-
     }
 
     public AppUser getUser(int id) {

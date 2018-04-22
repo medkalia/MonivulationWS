@@ -2,7 +2,7 @@ package tn.legacy.monivulationws.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import tn.legacy.monivulationws.CustomClasses.StartEndDate;
+import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.WeightData;
 import tn.legacy.monivulationws.enumerations.DateSearchType;
@@ -33,10 +33,10 @@ public class WeightDataController {
     }
 
     @RequestMapping(value = "/weightData/getBetween/{id}")
-    public List<WeightData> getAllWeightDataBetween(@PathVariable int id, @RequestBody StartEndDate startEndDate) throws NotFoundException{
+    public List<WeightData> getAllWeightDataBetween(@PathVariable int id, @RequestBody DateEntry dateEntry) throws NotFoundException{
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return weightDataService.getWeightDataBetween(appUser,startEndDate.getStartDate(),startEndDate.getEndDate(),DateSearchType.DayOnly);
+            return weightDataService.getWeightDataBetween(appUser, dateEntry.getStartDate(), dateEntry.getEndDate(),DateSearchType.DayOnly);
         }else{
             throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }

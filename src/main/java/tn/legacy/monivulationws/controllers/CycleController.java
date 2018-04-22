@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tn.legacy.monivulationws.CustomClasses.CycleInfo;
+import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
@@ -33,7 +34,7 @@ public class CycleController {
         if (appUser != null){
             newCycle.setAppUser(appUser);
             returnMessage+= cycleService.saveFirstCycle(newCycle);
-            returnMessage += " - " + statusService.createFirstStatus(appUser,newCycle.getStartDate());
+            returnMessage += " - " + statusService.createFirstStatus(appUser,newCycle);
             return returnMessage;
         }else{
             returnMessage = "AppUser of Id "+id+" Not found";
@@ -41,21 +42,21 @@ public class CycleController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/cycle/startPeriod/{id}")
-    public String startCyclePeriod (@PathVariable int id) throws NotFoundException {
+    @RequestMapping(method = RequestMethod.POST, value = "/cycle/startPeriod/{id}")
+    public String startCyclePeriod (@RequestBody DateEntry dateEntry, @PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return statusService.confirmStartCycle(appUser);
+            return statusService.confirmStartCycle(appUser,dateEntry.getStartDate());
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/cycle/endPeriod/{id}")
-    public String endCyclePeriod (@PathVariable int id) throws NotFoundException {
+    @RequestMapping(method = RequestMethod.POST, value = "/cycle/endPeriod/{id}")
+    public String endCyclePeriod (@RequestBody DateEntry dateEntry,@PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return cycleService.endCyclePeriod(appUser);
+            return cycleService.endCyclePeriod(appUser,dateEntry.getEndDate());
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }

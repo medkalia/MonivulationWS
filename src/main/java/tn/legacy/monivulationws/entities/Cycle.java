@@ -17,6 +17,8 @@ public class Cycle {
     private float length;
     private float periodLength;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime ovulationDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime fertilityStartDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime fertilityEndDate;
@@ -24,7 +26,6 @@ public class Cycle {
     private float lutealLength;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
-    //@JsonIgnore
     private AppUser appUser;
 
     @OneToOne
@@ -63,6 +64,14 @@ public class Cycle {
 
     public void setPeriodLength(float periodLength) {
         this.periodLength = periodLength;
+    }
+
+    public LocalDateTime getOvulationDate() {
+        return ovulationDate;
+    }
+
+    public void setOvulationDate(LocalDateTime ovulationDate) {
+        this.ovulationDate = ovulationDate;
     }
 
     public LocalDateTime getFertilityStartDate() {

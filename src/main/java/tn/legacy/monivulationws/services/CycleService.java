@@ -1,9 +1,12 @@
 package tn.legacy.monivulationws.services;
 
+import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tn.legacy.monivulationws.CustomClasses.CycleInfo;
+import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
+import tn.legacy.monivulationws.Util.CycleCalculationUtil;
 import tn.legacy.monivulationws.Util.DateUtil;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
@@ -15,16 +18,13 @@ import tn.legacy.monivulationws.repositories.CycleRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CycleService {
 
-    public final static float DEFAULT_CYCLE_LENGTH = 28;
-    public final static float DEFAULT_PERIOD_LENGTH = 3;
-    public final static int DEFAULT_FERTILITY_START = 8;
-    public final static int DEFAULT_FERTILITY_END = 15;
-    public final static float DEFAULT_FOLLICULAR_LENGTH = 14;
-    public final static float DEFAULT_LUTHEAL_LENGTH = 14;
+
+
 
 
     @Autowired
@@ -115,16 +115,18 @@ public class CycleService {
     public String saveFirstCycle(Cycle newCycle) {
         if (cycleRepository.findByAppUser(newCycle.getAppUser()) == null) {
             if (newCycle.getLength() == 0)
-                newCycle.setLength(DEFAULT_CYCLE_LENGTH);
+                newCycle.setLength(CycleCalculationUtil.DEFAULT_CYCLE_LENGTH);
             if (newCycle.getPeriodLength() == 0)
-                newCycle.setPeriodLength(DEFAULT_PERIOD_LENGTH);
+                newCycle.setPeriodLength(CycleCalculationUtil.DEFAULT_PERIOD_LENGTH);
             if (newCycle.getStartDate() == null)
                 newCycle.setStartDate(DateUtil.getCurrentDateTime());
-
-            newCycle.setFertilityStartDate(newCycle.getStartDate().plusDays(DEFAULT_FERTILITY_START));
-            newCycle.setFertilityEndDate(newCycle.getStartDate().plusDays(DEFAULT_FERTILITY_END));
-            newCycle.setFollicularLength(DEFAULT_FOLLICULAR_LENGTH);
-            newCycle.setLutealLength(DEFAULT_LUTHEAL_LENGTH);
+            DateEntry ovulationRelatedDates = CycleCalculationUtil.getFertilityDates(newCycle.getStartDate(),Math.round(newCycle.getLength()));
+            Map<StatusName, Integer>  lengthMap = CycleCalculationUtil.getStatusLength(Math.round(newCycle.getLength()));
+            newCycle.setOvulationDate(ovulationRelatedDates.getEntryDate());
+            newCycle.setFertilityStartDate(ovulationRelatedDates.getStartDate());
+            newCycle.setFertilityEndDate(ovulationRelatedDates.getEndDate());
+            newCycle.setFollicularLength(lengthMap.get(StatusName.follicular));
+            newCycle.setLutealLength(lengthMap.get(StatusName.luteal));
 
             cycleRepository.save(newCycle);
             return "First cycle created";
@@ -133,22 +135,26 @@ public class CycleService {
     }
 
     //start new cycle (period start)
-    public void startCycle(AppUser appUser) {
+    public void startCycle(AppUser appUser, LocalDateTime startDate) {
         Cycle newCycle = new Cycle();
         /*TEST*/ //LocalDateTime startDate = DateUtil.parseDate("31-01-2018 10:00:00");
-        LocalDateTime startDate = DateUtil.getCurrentDateTime();
-        float cycleLength = getAverageCycleLenght(appUser);
-        float periodLength = getAveragePeriodLenght(appUser);
-        float follicularLength = getAverageFollicularLength(appUser);
-        float lutealLength = getAverageLutealLength(appUser);
+        LocalDateTime startDateToSave = DateUtil.getCurrentDateTime();
+        if (startDate != null)
+            startDateToSave = startDate;
+        int cycleLength = (int)getAverageCycleLenght(appUser);
+        DateEntry ovulationRelatedDate = CycleCalculationUtil.getFertilityDates(startDateToSave,cycleLength);
+        int periodLength = (int)getAveragePeriodLenght(appUser);
+        int follicularLength = (int)getAverageFollicularLength(appUser);
+        int lutealLength = (int)getAverageLutealLength(appUser);
 
-        newCycle.setStartDate(startDate);
+        newCycle.setStartDate(startDateToSave);
         newCycle.setLength(cycleLength);
         newCycle.setPeriodLength(periodLength);
+        newCycle.setOvulationDate(ovulationRelatedDate.getEntryDate());
+        newCycle.setFertilityStartDate(ovulationRelatedDate.getStartDate());
+        newCycle.setFertilityEndDate(ovulationRelatedDate.getEndDate());
         newCycle.setFollicularLength(follicularLength);
         newCycle.setLutealLength(lutealLength);
-        newCycle.setFertilityStartDate(newCycle.getStartDate().plusDays(DEFAULT_FERTILITY_START));
-        newCycle.setFertilityEndDate(newCycle.getStartDate().plusDays(DEFAULT_FERTILITY_END));
         newCycle.setAppUser(appUser);
 
         cycleRepository.save(newCycle);
@@ -157,13 +163,16 @@ public class CycleService {
     //------------------------------------------
     //---------------Operations---------------
     //end period of current cycle
-    public String endCyclePeriod(AppUser appUser) {
+    public String endCyclePeriod(AppUser appUser, LocalDateTime endDate) {
         Cycle cycle = getCycle(appUser);
+        LocalDateTime actualEndDate = DateUtil.getCurrentDateTime();
+        if (endDate != null)
+            actualEndDate = endDate;
         if (cycle != null && statusService.getStatus(appUser) != null) {
             /*TEST*/ //float periodLength = DateUtil.getDurationBetween(cycle.getStartDate(),DateUtil.parseDate("03-02-2018 15:00:00"), DurationType.Days);
-            float periodLength = DateUtil.getDurationBetween(cycle.getStartDate(), DateUtil.getCurrentDateTime(), DurationType.Days);
+            float periodLength = DateUtil.getDurationBetween(cycle.getStartDate(), actualEndDate, DurationType.Days);
 
-            cycle.setPeriodLength(periodLength);
+            cycle.setPeriodLength(Math.round(periodLength));
 
             cycleRepository.save(cycle);
             return "Period Finished";
@@ -171,34 +180,46 @@ public class CycleService {
         return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + appUser.getId();
     }
 
-    public void updateFollicularLength(AppUser appUser) {
+    public void updateFollicularLength(AppUser appUser, LocalDateTime date) {
         Cycle cycle = getCycle(appUser);
+        LocalDateTime actualDate = DateUtil.getCurrentDateTime();
+        if (date != null)
+            actualDate = date;
         /*TEST*/ /*float follicularLength = DateUtil.getDurationBetween(
                 cycle.getStartDate(),
                 DateUtil.parseDate("16-01-2018 08:00:00"),
                 DurationType.Days);*/
         float follicularLength = DateUtil.getDurationBetween(
                 cycle.getStartDate(),
-                DateUtil.getCurrentDateTime(),
+                actualDate,
                 DurationType.Days);
-        if (follicularLength == 0) follicularLength = DEFAULT_FOLLICULAR_LENGTH;
-        cycle.setFollicularLength(follicularLength);
+        //if (follicularLength == 0) follicularLength = DEFAULT_FOLLICULAR_LENGTH;
+        cycle.setFollicularLength(Math.round(follicularLength));
+        cycle.setLutealLength(cycle.getLength()-cycle.getFollicularLength());
+        DateEntry ovulationDates = CycleCalculationUtil.getFertilityDates(actualDate);
+        cycle.setOvulationDate(ovulationDates.getEntryDate());
+        cycle.setFertilityStartDate(ovulationDates.getStartDate());
+        cycle.setFertilityEndDate(ovulationDates.getEndDate());
 
         cycleRepository.save(cycle);
     }
 
-    public void updateLutealLength(AppUser appUser) {
+    public void updateLutealLength(AppUser appUser, LocalDateTime date) {
         Cycle cycle = getCycle(appUser);
+        LocalDateTime actualDate = DateUtil.getCurrentDateTime();
+        if (date != null)
+            actualDate = date;
         /*TEST*/ /*float lutealLength = DateUtil.getDurationBetween(
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
                 DateUtil.parseDate("31-01-2018 10:00:00"),
                 DurationType.Days);*/
         float lutealLength = DateUtil.getDurationBetween(
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
-                DateUtil.getCurrentDateTime(),
+                actualDate,
                 DurationType.Days);
-        if (lutealLength == 0) lutealLength = DEFAULT_LUTHEAL_LENGTH;
-        cycle.setLutealLength(lutealLength);
+        if (lutealLength == 0) lutealLength = cycle.getLength() - cycle.getFollicularLength();
+        cycle.setLutealLength(Math.round(lutealLength));
+        cycle.setLength(cycle.getLutealLength()+cycle.getFollicularLength());
 
         cycleRepository.save(cycle);
     }
@@ -213,6 +234,7 @@ public class CycleService {
         } else {
             cycleLength = 0;
         }
+        cycleLength = Math.round(cycleLength);
         return cycleLength;
     }
 
@@ -223,6 +245,7 @@ public class CycleService {
         } else {
             periodLength = 0;
         }
+        periodLength = Math.round(periodLength);
         return periodLength;
     }
 
@@ -233,6 +256,7 @@ public class CycleService {
         } else {
             follicularLength = 0;
         }
+        follicularLength = Math.round(follicularLength);
         return follicularLength;
     }
 
@@ -243,6 +267,7 @@ public class CycleService {
         } else {
             lutealLength = 0;
         }
+        lutealLength = Math.round(lutealLength);
         return lutealLength;
     }
 
