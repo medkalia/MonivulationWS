@@ -8,6 +8,7 @@ import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
+import tn.legacy.monivulationws.entities.Pregnancy;
 import tn.legacy.monivulationws.enumerations.LengthName;
 import tn.legacy.monivulationws.exceptions.NotFoundException;
 import tn.legacy.monivulationws.services.CycleService;
@@ -100,7 +101,7 @@ public class CycleController {
                 case cycle:
                     return cycleService.getAverageCycleLenght(appUser);
                 case period:
-                    return cycleService.getAveragePeriodLenght(appUser);
+                    return cycleService.getAveragePeriodLength(appUser);
                 case follicular:
                     return cycleService.getAverageFollicularLength(appUser);
                 case luteal:
@@ -121,4 +122,37 @@ public class CycleController {
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }
     }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/cycle/takeIntoConsideration")
+    public String takeCycleIntoConsideration (@RequestBody Cycle cycle) throws NotFoundException {
+        if (cycleService.takeCycleIntoConsideration(cycle)){
+            if (cycle.isConsiderForCalculation())
+                return "Cycle of id "+ cycle.getId() + " added to the calculations";
+            else
+                return "Cycle of id "+ cycle.getId() + " removed from the calculations";
+        }else{
+            throw new NotFoundException("Cycle with of Id "+cycle.getId()+" Not found");
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/cycle/startPregnancy/{id}")
+    public String startPregnancy (@RequestBody DateEntry dateEntry, @PathVariable int id) throws NotFoundException {
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return statusService.confirmPregnancy(appUser,dateEntry.getStartDate());
+        }else{
+            throw new NotFoundException("AppUser of Id "+id+" Not found");
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/cycle/endPregnancy/{id}")
+    public String endPregnancy (@RequestBody Pregnancy pregnancyToFinish, @PathVariable int id) throws NotFoundException {
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return statusService.endPregnancy(appUser,pregnancyToFinish.getFinishDate(),pregnancyToFinish.isEndedWithChild());
+        }else{
+            throw new NotFoundException("AppUser of Id "+id+" Not found");
+        }
+    }
+
 }

@@ -50,7 +50,6 @@ public class TemperatureDataController {
         }else{
             throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }
-
     }
 
 }

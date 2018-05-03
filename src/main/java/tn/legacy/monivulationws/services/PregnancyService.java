@@ -47,6 +47,7 @@ public class PregnancyService {
 
         pregnancyRepository.save(newPregnancy);
     }
+
     //Get by appUser
     public Pregnancy getPregnancy (AppUser appUser){
         return pregnancyRepository.findByCycle(cycleService.getCycle(appUser));
@@ -66,12 +67,12 @@ public class PregnancyService {
     //------------------------------------------
     //---------------Operations---------------
     //Confirm the end of a pregnancy
-    public void confirmFinishedPregnancy (AppUser appUser){
+    public void confirmFinishedPregnancy (AppUser appUser, LocalDateTime finishDate, boolean endedWithChild){
         Pregnancy pregnancyToFinish = pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(appUser),false);
         if (pregnancyToFinish != null){
             pregnancyToFinish.setFinished(true);
-            pregnancyToFinish.setFinishDate(DateUtil.getCurrentDateTime());
-
+            pregnancyToFinish.setFinishDate(finishDate);
+            pregnancyToFinish.setEndedWithChild(endedWithChild);
             pregnancyRepository.save(pregnancyToFinish);
         }
     }

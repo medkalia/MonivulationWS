@@ -1,6 +1,5 @@
 package tn.legacy.monivulationws.services;
 
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tn.legacy.monivulationws.CustomClasses.CycleInfo;
@@ -143,7 +142,7 @@ public class CycleService {
             startDateToSave = startDate;
         int cycleLength = (int)getAverageCycleLenght(appUser);
         DateEntry ovulationRelatedDate = CycleCalculationUtil.getFertilityDates(startDateToSave,cycleLength);
-        int periodLength = (int)getAveragePeriodLenght(appUser);
+        int periodLength = (int) getAveragePeriodLength(appUser);
         int follicularLength = (int)getAverageFollicularLength(appUser);
         int lutealLength = (int)getAverageLutealLength(appUser);
 
@@ -224,6 +223,14 @@ public class CycleService {
         cycleRepository.save(cycle);
     }
 
+    public boolean takeCycleIntoConsideration(Cycle cycle){
+        Cycle cycleToUpdate = cycleRepository.findOne(cycle.getId());
+        if (cycleToUpdate != null){
+            cycleToUpdate.setConsiderForCalculation(cycle.isConsiderForCalculation());
+            return true;
+        }else
+            return false;
+    }
     //------------------------------------------
     //---------------Calculations---------------
     public float getAverageCycleLenght(AppUser appUser) {
@@ -238,7 +245,7 @@ public class CycleService {
         return cycleLength;
     }
 
-    public float getAveragePeriodLenght(AppUser appUser) {
+    public float getAveragePeriodLength(AppUser appUser) {
         float periodLength;
         if (cycleRepository.findByAppUser(appUser) != null) {
             periodLength = cycleRepository.getAveragePeriodLenght(appUser);

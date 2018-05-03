@@ -17,10 +17,12 @@ public interface CycleRepository extends CrudRepository<Cycle, Integer> {
 
     Cycle findFirstByAppUserAndStartDate(AppUser appUser, LocalDateTime startDate);
 
+
+
     @Query("select count (c.id) from Cycle c where c.appUser = ?1")
     float getCycleCount(AppUser appUser);
 
-    @Query("select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = ?1 and cc.startDate < ?2)")
+    @Query("select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = ?1 and cc.startDate < ?2 )")
     List<Cycle> getFirstCycleBefore (AppUser appUser, LocalDateTime date);
 
     @Query("select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = ?1 and cc.startDate <= ?2)")
@@ -29,16 +31,16 @@ public interface CycleRepository extends CrudRepository<Cycle, Integer> {
     @Query(value ="select c from Cycle c where c.startDate = (select max(cc.startDate) from Cycle cc where cc.appUser = :targetUser)")
     List<Cycle> getLastCycle(@Param("targetUser") AppUser appUser);
 
-    @Query("select AVG(c.length) from Cycle c where c.appUser = ?1 and c.pregnancy = null")
+    @Query("select AVG(c.length) from Cycle c where c.appUser = ?1 and c.pregnancy = null and c.considerForCalculation = true")
     float getAverageCycleLenght(AppUser appUser);
 
-    @Query("select AVG(c.periodLength) from Cycle c where c.appUser = ?1 and c.pregnancy = null")
+    @Query("select AVG(c.periodLength) from Cycle c where c.appUser = ?1 and c.pregnancy = null and c.considerForCalculation = true")
     float getAveragePeriodLenght(AppUser appUser);
 
-    @Query("select AVG(c.follicularLength) from Cycle c where c.appUser = ?1")
+    @Query("select AVG(c.follicularLength) from Cycle c where c.appUser = ?1 and c.considerForCalculation = true")
     float getAverageFollicularLength(AppUser appUser);
 
-    @Query("select AVG(c.lutealLength) from Cycle c where c.appUser = ?1 and c.pregnancy = null")
+    @Query("select AVG(c.lutealLength) from Cycle c where c.appUser = ?1 and c.pregnancy = null and c.considerForCalculation = true")
     float getAverageLutealLength(AppUser appUser);
 
 

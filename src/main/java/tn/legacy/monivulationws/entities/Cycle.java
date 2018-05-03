@@ -24,6 +24,7 @@ public class Cycle {
     private LocalDateTime fertilityEndDate;
     private float follicularLength;
     private float lutealLength;
+    private boolean considerForCalculation = true;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
     private AppUser appUser;
@@ -120,5 +121,13 @@ public class Cycle {
 
     public void setPregnancy(Pregnancy pregnancy) {
         this.pregnancy = pregnancy;
+    }
+
+    public boolean isConsiderForCalculation() {
+        return considerForCalculation;
+    }
+
+    public void setConsiderForCalculation(boolean considerForCalculation) {
+        this.considerForCalculation = considerForCalculation;
     }
 }

@@ -67,6 +67,10 @@ public class StatusService {
         LocalDateTime startDateToSave = DateUtil.getCurrentDateTime();
         if (temperatureData.getEntryDate() != null)
             startDateToSave = temperatureData.getEntryDate();
+        if(temperatureData.getValue() > DEFAULT_MAX_IGNORE_TEMPERATURE)
+            temperatureData.setValue(DEFAULT_MAX_IGNORE_TEMPERATURE);
+        else if (temperatureData.getValue() < DEFAULT_MIN_IGNORE_TEMPERATURE)
+            temperatureData.setValue(DEFAULT_MIN_IGNORE_TEMPERATURE);
         switch (status.getName()){
             case follicular:
                 if (temperatureData.getValue() >= DEFAULT_SWITCH_TEMPERATURE ){
@@ -97,13 +101,15 @@ public class StatusService {
                     return "Temperature still higher than 37 C° and period delayed: waiting for appUser confirmation of pregnancy";
                 }
             case pregnancy:
-                if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
-                    status.setName(StatusName.follicular);
-                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
-                    status.setStartDate(startDateToSave);
-                    status.setConfirmed(false);
-                    statusRepository.save(status);
-                    return "Temperature lower than 37 C° : not pregnant, waiting for appUser confirmation of new cycle start";
+                if (!status.isConfirmed()){
+                    if (temperatureData.getValue() < DEFAULT_SWITCH_TEMPERATURE ){
+                        status.setName(StatusName.follicular);
+                        /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                        status.setStartDate(startDateToSave);
+                        status.setConfirmed(false);
+                        statusRepository.save(status);
+                        return "Temperature lower than 37 C° : not pregnant, waiting for appUser confirmation of new cycle start";
+                    }
                 }
         break;
         }
@@ -133,15 +139,17 @@ public class StatusService {
     public String confirmPregnancy (AppUser appUser, LocalDateTime startDate){
         Status status = getStatus(appUser);
         LocalDateTime startDateToSave = DateUtil.getCurrentDateTime();
+        Cycle currentCycle = cycleService.getCycle(appUser);
         if (startDate != null)
             startDateToSave = startDate;
-        if (status != null && cycleService.getCycle(appUser) != null){
+        if (status != null &&  currentCycle != null){
+            currentCycle.setConsiderForCalculation(false);
             if (status.getName() !=  StatusName.pregnancy){
                 status.setName(StatusName.pregnancy);
                 status.setStartDate(startDateToSave);
                 status.setConfirmed(true);
                 statusRepository.save(status);
-                pregnancyService.startPregnancy(appUser);
+                pregnancyService.startPregnancy(appUser,startDateToSave);
                 return "Started pregnancy manually";
             }else{
                 status.setConfirmed(true);
@@ -149,6 +157,23 @@ public class StatusService {
                 pregnancyService.startPregnancy(appUser,status.getStartDate());
                 return "Started pregnancy manually after automatic detection";
             }
+        }
+        return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + appUser.getId();
+    }
+
+    public String endPregnancy (AppUser appUser, LocalDateTime finishDate, boolean endedWithChild){
+        Status status = getStatus(appUser);
+        LocalDateTime finishDateToSave = DateUtil.getCurrentDateTime();
+        Cycle currentCycle = cycleService.getCycle(appUser);
+        if (finishDate != null)
+            finishDateToSave = finishDate;
+        if (status != null &&  currentCycle != null){
+            confirmStartCycle(appUser, finishDateToSave);
+            pregnancyService.confirmFinishedPregnancy(appUser,finishDateToSave,endedWithChild);
+            if (endedWithChild)
+                return "End Of pregnancy with a child";
+            else
+                return "End Of pregnancy without a child";
         }
         return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + appUser.getId();
     }
