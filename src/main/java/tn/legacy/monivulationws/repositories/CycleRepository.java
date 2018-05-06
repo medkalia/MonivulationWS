@@ -11,13 +11,11 @@ import java.util.List;
 
 public interface CycleRepository extends CrudRepository<Cycle, Integer> {
 
-    Cycle findByAppUser (AppUser appUser);
+    Cycle findFirstByAppUserOrderByStartDateDesc(AppUser appUser);
 
     List<Cycle> findAllByAppUser (AppUser appUser);
 
     Cycle findFirstByAppUserAndStartDate(AppUser appUser, LocalDateTime startDate);
-
-
 
     @Query("select count (c.id) from Cycle c where c.appUser = ?1")
     float getCycleCount(AppUser appUser);

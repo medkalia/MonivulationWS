@@ -2,9 +2,9 @@ package tn.legacy.monivulationws.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.Util.CycleCalculationUtil;
 import tn.legacy.monivulationws.Util.DateUtil;
+import tn.legacy.monivulationws.Util.DebugUtil;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
 import tn.legacy.monivulationws.entities.Status;
@@ -30,13 +30,20 @@ public class StatusService {
     @Autowired
     private PregnancyService pregnancyService;
 
+    //Check if status and cycle exist
+    public boolean checkFirstStatus (AppUser appUser){
+        return statusRepository.findByAppUser(appUser) != null ;
+    }
     //create status for first time
     public String createFirstStatus(AppUser appUser, Cycle newCycle){
         if (statusRepository.findByAppUser(appUser) == null){
             Status newStatus = new Status();
+            LocalDateTime entryDateToSave = DateUtil.getCurrentDateTime();
+            if (newCycle.getEntryDate() != null)
+                entryDateToSave = newCycle.getEntryDate();
             StatusName currentStatusName = DateUtil.getDurationBetween(
                     newCycle.getStartDate(),
-                    DateUtil.getCurrentDateTime(),
+                    entryDateToSave,
                     DurationType.Days) < CycleCalculationUtil.getStatusLength((int)newCycle.getLength()).get(StatusName.follicular) ?
                     StatusName.follicular :
                     StatusName.luteal ;
@@ -71,6 +78,7 @@ public class StatusService {
             temperatureData.setValue(DEFAULT_MAX_IGNORE_TEMPERATURE);
         else if (temperatureData.getValue() < DEFAULT_MIN_IGNORE_TEMPERATURE)
             temperatureData.setValue(DEFAULT_MIN_IGNORE_TEMPERATURE);
+        cycleService.checkCycleLength(appUser,startDateToSave);
         switch (status.getName()){
             case follicular:
                 if (temperatureData.getValue() >= DEFAULT_SWITCH_TEMPERATURE ){
@@ -91,14 +99,16 @@ public class StatusService {
                     statusRepository.save(status);
                     return "Temperature lower than 37 C° : waiting for appUser confirmation of new cycle start";
                 }
-                else if (temperatureData.getValue() > DEFAULT_SWITCH_TEMPERATURE &&
-                        DateUtil.getDurationBetween(status.getStartDate(), startDateToSave,DurationType.Days) > cycleService.getAverageLutealLength(appUser)){
-                    status.setName(StatusName.pregnancy);
-                    /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
-                    status.setStartDate(startDateToSave);
-                    status.setConfirmed(false);
-                    statusRepository.save(status);
-                    return "Temperature still higher than 37 C° and period delayed: waiting for appUser confirmation of pregnancy";
+                else if (temperatureData.getValue() >= DEFAULT_SWITCH_TEMPERATURE ){
+                    cycleService.checkCycleLutealLength(appUser,startDateToSave);
+                    if (DateUtil.getDurationBetween(status.getStartDate(), startDateToSave,DurationType.Days) > cycleService.getAverageLutealLength(appUser)){
+                        status.setName(StatusName.pregnancy);
+                        /*TEST*/ //status.setStartDate(DateUtil.parseDate("30-01-2018 08:00:00"));
+                        status.setStartDate(startDateToSave);
+                        status.setConfirmed(false);
+                        statusRepository.save(status);
+                        return "Temperature still higher than 37 C° and period delayed: waiting for appUser confirmation of pregnancy";
+                    }
                 }
             case pregnancy:
                 if (!status.isConfirmed()){
@@ -127,8 +137,9 @@ public class StatusService {
             /*TEST*/ //status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
             status.setStartDate(startDateToSave);
             status.setConfirmed(true);
+            status.setName(StatusName.follicular);
             statusRepository.save(status);
-            cycleService.updateLutealLength(appUser, startDateToSave);
+            cycleService.updateLutealLengthOnCycleEnd(appUser, startDateToSave);
             cycleService.startCycle(appUser, startDateToSave);
             return "Start of new cycle confirmed";
         }
@@ -168,8 +179,8 @@ public class StatusService {
         if (finishDate != null)
             finishDateToSave = finishDate;
         if (status != null &&  currentCycle != null){
-            confirmStartCycle(appUser, finishDateToSave);
             pregnancyService.confirmFinishedPregnancy(appUser,finishDateToSave,endedWithChild);
+            confirmStartCycle(appUser, finishDateToSave);
             if (endedWithChild)
                 return "End Of pregnancy with a child";
             else

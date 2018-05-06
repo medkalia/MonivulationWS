@@ -58,22 +58,24 @@ public class PregnancyService {
     }
     //Get ongoing by appUser
     public Pregnancy getCurrentPregnancy (AppUser appUser){
-        return pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(appUser), false);
+        return pregnancyRepository.findFirstByCycleAndFinished(cycleService.getCycle(appUser), false);
     }
     //Get ongoing by cycle
     public Pregnancy getCurrentPregnancy (Cycle cycle){
-        return pregnancyRepository.findByCycleAndIsFinished(cycle, false);
+        return pregnancyRepository.findFirstByCycleAndFinished(cycle, false);
     }
     //------------------------------------------
     //---------------Operations---------------
     //Confirm the end of a pregnancy
     public void confirmFinishedPregnancy (AppUser appUser, LocalDateTime finishDate, boolean endedWithChild){
-        Pregnancy pregnancyToFinish = pregnancyRepository.findByCycleAndIsFinished(cycleService.getCycle(appUser),false);
+        Cycle currentCycle = cycleService.getCycle(appUser);
+        Pregnancy pregnancyToFinish = pregnancyRepository.findFirstByCycleAndFinished(currentCycle,false);
         if (pregnancyToFinish != null){
             pregnancyToFinish.setFinished(true);
             pregnancyToFinish.setFinishDate(finishDate);
             pregnancyToFinish.setEndedWithChild(endedWithChild);
             pregnancyRepository.save(pregnancyToFinish);
         }
+
     }
 }

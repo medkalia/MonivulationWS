@@ -14,4 +14,6 @@ public interface TemperatureDataRepository extends CrudRepository<TemperatureDat
     TemperatureData findFirstByAppUserAndAndEntryDateBetween(AppUser appUser, LocalDateTime startDate, LocalDateTime endDate);
 
     TemperatureData findFirstByAppUserAndEntryDate(AppUser appUser, LocalDateTime date);
+
+    TemperatureData findFirstByAppUserOrderByIdDesc (AppUser appUser);
 }

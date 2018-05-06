@@ -30,7 +30,10 @@ public class TemperatureDataService {
             return statusService.checkStatus(temperatureData);
         }
         return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + temperatureData.getAppUser().getId();
+    }
 
+    public TemperatureData getLastTemperatureData (AppUser appUser){
+        return temperatureDataRepository.findFirstByAppUserOrderByIdDesc(appUser);
     }
 
     //return temperature at specific date

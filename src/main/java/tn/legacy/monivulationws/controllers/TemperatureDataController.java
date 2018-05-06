@@ -52,4 +52,15 @@ public class TemperatureDataController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET,value = "/temperatureData/getLast/{id}")
+    public TemperatureData getLastTemperatureData(@PathVariable int id) throws NotFoundException{
+
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return temperatureDataService.getLastTemperatureData(appUser);
+        }else{
+            throw new NotFoundException("AppUser of Id : "+id+" Not found");
+        }
+    }
+
 }

@@ -7,8 +7,10 @@ import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
 import tn.legacy.monivulationws.Util.CycleCalculationUtil;
 import tn.legacy.monivulationws.Util.DateUtil;
+import tn.legacy.monivulationws.Util.DebugUtil;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
+import tn.legacy.monivulationws.entities.Pregnancy;
 import tn.legacy.monivulationws.entities.Status;
 import tn.legacy.monivulationws.enumerations.DurationType;
 import tn.legacy.monivulationws.enumerations.PeriodInfoDescription;
@@ -23,14 +25,14 @@ import java.util.Map;
 public class CycleService {
 
 
-
-
-
     @Autowired
     private CycleRepository cycleRepository;
 
     @Autowired
     private StatusService statusService;
+
+    @Autowired
+    private PregnancyService pregnancyService;
 
 
     //---------------CRUD---------------
@@ -40,37 +42,48 @@ public class CycleService {
     }
 
     //get last recorded cycle
-    public CycleInfo getCycleInfo(AppUser appUser) {
+    public CycleInfo getCycleInfo(AppUser appUser, LocalDateTime entryDate) {
         List<Cycle> resultList = cycleRepository.getLastCycle(appUser);
         Status status = statusService.getStatus(appUser);
+        LocalDateTime actualEntryDate = DateUtil.getCurrentDateTime();
+        if (entryDate != null)
+            actualEntryDate = entryDate;
         if (resultList.size() > 0) {
             Cycle currentCycle = resultList.get(0);
             CycleInfo cycleInfo = new CycleInfo();
-            if ((status.getName() == StatusName.follicular && status.isConfirmed())) {
-                cycleInfo.startDate = status.getStartDate();
-                cycleInfo.currentStatus = StatusName.follicular;
-            } else if (status.getName() == StatusName.follicular && !status.isConfirmed()) {
-                cycleInfo.startDate = currentCycle.getStartDate();
-                cycleInfo.currentStatus = StatusName.luteal;
-            } else if (status.getName() == StatusName.luteal) {
-                cycleInfo.startDate = currentCycle.getStartDate();
-                cycleInfo.currentStatus = StatusName.luteal;
+            Pregnancy currentPregnancy = pregnancyService.getCurrentPregnancy(currentCycle);
+            if (status.getName() != StatusName.pregnancy || (status.getName() == StatusName.pregnancy && currentPregnancy == null)) {
+                if ((status.getName() == StatusName.follicular && status.isConfirmed())) {
+                    cycleInfo.startDate = status.getStartDate();
+                    cycleInfo.currentStatus = StatusName.follicular;
+                } else if (status.getName() == StatusName.follicular && !status.isConfirmed()) {
+                    cycleInfo.startDate = currentCycle.getStartDate();
+                    cycleInfo.currentStatus = StatusName.luteal;
+                } else if (status.getName() == StatusName.luteal) {
+                    cycleInfo.startDate = currentCycle.getStartDate();
+                    cycleInfo.currentStatus = StatusName.luteal;
+                }
+                cycleInfo.length = currentCycle.getLength();
+                cycleInfo.periodLength = currentCycle.getPeriodLength();
+                cycleInfo.fertilityStartDate = currentCycle.getFertilityStartDate();
+                cycleInfo.fertilityEndDate = currentCycle.getFertilityEndDate();
+                cycleInfo.follicularLength = currentCycle.getFollicularLength();
+                cycleInfo.lutealLength = currentCycle.getLutealLength();
+                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days);
+                cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, currentCycle.getLength());
+            } else {
+                cycleInfo.startDate = currentPregnancy.getStartDate();
+                cycleInfo.currentStatus = StatusName.pregnancy;
+                cycleInfo.endDate = currentPregnancy.getFinishDate();
+                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days);
             }
-            cycleInfo.length = currentCycle.getLength();
-            cycleInfo.periodLength = currentCycle.getPeriodLength();
-            cycleInfo.fertilityStartDate = currentCycle.getFertilityStartDate();
-            cycleInfo.fertilityEndDate = currentCycle.getFertilityEndDate();
-            cycleInfo.follicularLength = currentCycle.getFollicularLength();
-            cycleInfo.lutealLength = currentCycle.getLutealLength();
-            cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, DateUtil.getCurrentDateTime(), DurationType.Days);
-            cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, currentCycle.getLength());
             return cycleInfo;
         } else {
             return null;
         }
     }
 
-    public CycleInfo getCycleInfo(AppUser appUser, LocalDateTime date) {
+    public CycleInfo getCycleInfoAt(AppUser appUser, LocalDateTime date) {
         Cycle cycle = null;
         List<Cycle> resultList = cycleRepository.getFirstCycleBeforeOrAt(appUser, date);
         if (resultList.size() > 0) {
@@ -112,15 +125,15 @@ public class CycleService {
 
     //save the first default cycle
     public String saveFirstCycle(Cycle newCycle) {
-        if (cycleRepository.findByAppUser(newCycle.getAppUser()) == null) {
+        if (cycleRepository.findFirstByAppUserOrderByStartDateDesc(newCycle.getAppUser()) == null) {
             if (newCycle.getLength() == 0)
                 newCycle.setLength(CycleCalculationUtil.DEFAULT_CYCLE_LENGTH);
             if (newCycle.getPeriodLength() == 0)
                 newCycle.setPeriodLength(CycleCalculationUtil.DEFAULT_PERIOD_LENGTH);
             if (newCycle.getStartDate() == null)
                 newCycle.setStartDate(DateUtil.getCurrentDateTime());
-            DateEntry ovulationRelatedDates = CycleCalculationUtil.getFertilityDates(newCycle.getStartDate(),Math.round(newCycle.getLength()));
-            Map<StatusName, Integer>  lengthMap = CycleCalculationUtil.getStatusLength(Math.round(newCycle.getLength()));
+            DateEntry ovulationRelatedDates = CycleCalculationUtil.getFertilityDates(newCycle.getStartDate(), Math.round(newCycle.getLength()));
+            Map<StatusName, Integer> lengthMap = CycleCalculationUtil.getStatusLength(Math.round(newCycle.getLength()));
             newCycle.setOvulationDate(ovulationRelatedDates.getEntryDate());
             newCycle.setFertilityStartDate(ovulationRelatedDates.getStartDate());
             newCycle.setFertilityEndDate(ovulationRelatedDates.getEndDate());
@@ -140,11 +153,11 @@ public class CycleService {
         LocalDateTime startDateToSave = DateUtil.getCurrentDateTime();
         if (startDate != null)
             startDateToSave = startDate;
-        int cycleLength = (int)getAverageCycleLenght(appUser);
-        DateEntry ovulationRelatedDate = CycleCalculationUtil.getFertilityDates(startDateToSave,cycleLength);
+        int cycleLength = (int) getAverageCycleLength(appUser);
+        DateEntry ovulationRelatedDate = CycleCalculationUtil.getFertilityDates(startDateToSave, cycleLength);
         int periodLength = (int) getAveragePeriodLength(appUser);
-        int follicularLength = (int)getAverageFollicularLength(appUser);
-        int lutealLength = (int)getAverageLutealLength(appUser);
+        int follicularLength = (int) getAverageFollicularLength(appUser);
+        int lutealLength = (int) getAverageLutealLength(appUser);
 
         newCycle.setStartDate(startDateToSave);
         newCycle.setLength(cycleLength);
@@ -194,7 +207,7 @@ public class CycleService {
                 DurationType.Days);
         //if (follicularLength == 0) follicularLength = DEFAULT_FOLLICULAR_LENGTH;
         cycle.setFollicularLength(Math.round(follicularLength));
-        cycle.setLutealLength(cycle.getLength()-cycle.getFollicularLength());
+        cycle.setLutealLength(cycle.getLength() - cycle.getFollicularLength());
         DateEntry ovulationDates = CycleCalculationUtil.getFertilityDates(actualDate);
         cycle.setOvulationDate(ovulationDates.getEntryDate());
         cycle.setFertilityStartDate(ovulationDates.getStartDate());
@@ -203,7 +216,7 @@ public class CycleService {
         cycleRepository.save(cycle);
     }
 
-    public void updateLutealLength(AppUser appUser, LocalDateTime date) {
+    public void updateLutealLengthOnCycleEnd(AppUser appUser, LocalDateTime date) {
         Cycle cycle = getCycle(appUser);
         LocalDateTime actualDate = DateUtil.getCurrentDateTime();
         if (date != null)
@@ -212,30 +225,63 @@ public class CycleService {
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
                 DateUtil.parseDate("31-01-2018 10:00:00"),
                 DurationType.Days);*/
+        DebugUtil.logError("Doing calculations on cycle end of ID : " + cycle.getId());
+        DebugUtil.logError("Old luteal length = " + cycle.getLutealLength());
+        DebugUtil.logError("Doing checking on date : " + actualDate);
+        DebugUtil.logError("Follicular length = " + cycle.getFollicularLength());
+        DebugUtil.logError("Ovulation date (start+fl) = " + DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()));
         float lutealLength = DateUtil.getDurationBetween(
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
                 actualDate,
                 DurationType.Days);
+        DebugUtil.logError("New calculated Luteal length = " + lutealLength);
+        DebugUtil.logError("Old cycle length = " + cycle.getLength());
+
         if (lutealLength == 0) lutealLength = cycle.getLength() - cycle.getFollicularLength();
         cycle.setLutealLength(Math.round(lutealLength));
-        cycle.setLength(cycle.getLutealLength()+cycle.getFollicularLength());
-
+        cycle.setLength(cycle.getLutealLength() + cycle.getFollicularLength());
+        DebugUtil.logError("new length = " + cycle.getLength());
         cycleRepository.save(cycle);
     }
 
-    public boolean takeCycleIntoConsideration(Cycle cycle){
+    public boolean takeCycleIntoConsideration(Cycle cycle) {
         Cycle cycleToUpdate = cycleRepository.findOne(cycle.getId());
-        if (cycleToUpdate != null){
+        if (cycleToUpdate != null) {
             cycleToUpdate.setConsiderForCalculation(cycle.isConsiderForCalculation());
             return true;
-        }else
+        } else
             return false;
     }
+
+    public void checkCycleLength(AppUser appUser, LocalDateTime entryDate) {
+        Cycle currentCycle = getCycle(appUser);
+
+        int numberOfDaysSinceStartCurrentCycle = Math.round(DateUtil.getDurationBetween(currentCycle.getStartDate(),entryDate,DurationType.Days));
+        if (numberOfDaysSinceStartCurrentCycle > currentCycle.getLength()){
+            DebugUtil.logError("("+entryDate+")UPDATE-- cycle length " + currentCycle.getLength() + " --> " + numberOfDaysSinceStartCurrentCycle);
+            currentCycle.setLength(numberOfDaysSinceStartCurrentCycle);
+        }
+
+        cycleRepository.save(currentCycle);
+    }
+
+    public void checkCycleLutealLength(AppUser appUser, LocalDateTime entryDate) {
+        Cycle currentCycle = getCycle(appUser);
+        LocalDateTime ovulationDate = DateUtil.addNumberOfDaysTo(currentCycle.getStartDate(),currentCycle.getFollicularLength());
+        int numberOfDaysSinceCurrentOvulation = Math.round(DateUtil.getDurationBetween(ovulationDate,entryDate,DurationType.Days));
+        if (numberOfDaysSinceCurrentOvulation > currentCycle.getLutealLength()){
+            DebugUtil.logError("Changin luteal length value as " + currentCycle.getLutealLength() +" < " + numberOfDaysSinceCurrentOvulation );
+            currentCycle.setLutealLength(numberOfDaysSinceCurrentOvulation);
+        }
+
+        cycleRepository.save(currentCycle);
+    }
+
     //------------------------------------------
     //---------------Calculations---------------
-    public float getAverageCycleLenght(AppUser appUser) {
+    public float getAverageCycleLength(AppUser appUser) {
         float cycleLength;
-        if (cycleRepository.findByAppUser(appUser) != null) {
+        if (cycleRepository.findFirstByAppUserOrderByStartDateDesc(appUser) != null) {
             cycleLength = cycleRepository.getAverageCycleLenght(appUser);
 
         } else {
@@ -247,7 +293,7 @@ public class CycleService {
 
     public float getAveragePeriodLength(AppUser appUser) {
         float periodLength;
-        if (cycleRepository.findByAppUser(appUser) != null) {
+        if (cycleRepository.findFirstByAppUserOrderByStartDateDesc(appUser) != null) {
             periodLength = cycleRepository.getAveragePeriodLenght(appUser);
         } else {
             periodLength = 0;
@@ -258,7 +304,7 @@ public class CycleService {
 
     public float getAverageFollicularLength(AppUser appUser) {
         float follicularLength;
-        if (cycleRepository.findByAppUser(appUser) != null) {
+        if (cycleRepository.findFirstByAppUserOrderByStartDateDesc(appUser) != null) {
             follicularLength = cycleRepository.getAverageFollicularLength(appUser);
         } else {
             follicularLength = 0;
@@ -269,7 +315,7 @@ public class CycleService {
 
     public float getAverageLutealLength(AppUser appUser) {
         float lutealLength;
-        if (cycleRepository.findByAppUser(appUser) != null) {
+        if (cycleRepository.findFirstByAppUserOrderByStartDateDesc(appUser) != null) {
             lutealLength = cycleRepository.getAverageLutealLength(appUser);
         } else {
             lutealLength = 0;

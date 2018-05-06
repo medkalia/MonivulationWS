@@ -32,6 +32,10 @@ public class Cycle {
     @OneToOne
     private Pregnancy pregnancy;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    @Transient
+    private LocalDateTime entryDate;
+
     public Cycle() {
     }
 
@@ -129,5 +133,13 @@ public class Cycle {
 
     public void setConsiderForCalculation(boolean considerForCalculation) {
         this.considerForCalculation = considerForCalculation;
+    }
+
+    public LocalDateTime getEntryDate() {
+        return entryDate;
+    }
+
+    public void setEntryDate(LocalDateTime entryDate) {
+        this.entryDate = entryDate;
     }
 }

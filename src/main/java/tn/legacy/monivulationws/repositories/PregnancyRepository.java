@@ -8,6 +8,6 @@ public interface PregnancyRepository extends CrudRepository<Pregnancy, Integer> 
 
     Pregnancy findByCycle(Cycle cycle);
 
-    Pregnancy findByCycleAndIsFinished(Cycle cycle, boolean isFinished);
+    Pregnancy findFirstByCycleAndFinished(Cycle cycle, boolean isFinished);
 
 }

@@ -6,6 +6,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import tn.legacy.monivulationws.CustomClasses.CycleInfo;
 import tn.legacy.monivulationws.CustomClasses.DateEntry;
 import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
+import tn.legacy.monivulationws.Util.DebugUtil;
 import tn.legacy.monivulationws.entities.AppUser;
 import tn.legacy.monivulationws.entities.Cycle;
 import tn.legacy.monivulationws.entities.Pregnancy;
@@ -15,6 +16,7 @@ import tn.legacy.monivulationws.services.CycleService;
 import tn.legacy.monivulationws.services.StatusService;
 import tn.legacy.monivulationws.services.UserService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -27,6 +29,16 @@ public class CycleController {
     @Autowired
     private UserService userService;
 
+    @RequestMapping(method = RequestMethod.GET, value = "/cycle/checkFirst/{id}")
+    public boolean checkFirstStatus (@PathVariable int id) throws NotFoundException {
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return statusService.checkFirstStatus(appUser);
+        }else{
+            String returnMessage = "AppUser of Id "+id+" Not found";
+            throw new NotFoundException(returnMessage);
+        }
+    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/cycle/first/{id}")
     public String addFirstCycle (@RequestBody Cycle newCycle, @PathVariable int id) throws NotFoundException {
@@ -77,17 +89,17 @@ public class CycleController {
     public CycleInfo getCycleInfoAt (@PathVariable int id,@RequestBody Cycle infoCycle) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return cycleService.getCycleInfo(appUser,infoCycle.getStartDate());
+            return cycleService.getCycleInfoAt(appUser,infoCycle.getStartDate());
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/cycle/info/{id}")
-    public CycleInfo getCycleInfo (@PathVariable int id) throws NotFoundException {
+    public CycleInfo getCycleInfo (@PathVariable int id,@RequestBody DateEntry dateEntry) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
-            return cycleService.getCycleInfo(appUser);
+            return cycleService.getCycleInfo(appUser,dateEntry.getEntryDate());
         }else{
             throw new NotFoundException("AppUser of Id "+id+" Not found");
         }
@@ -99,7 +111,7 @@ public class CycleController {
         if (appUser != null){
             switch (lengthName){
                 case cycle:
-                    return cycleService.getAverageCycleLenght(appUser);
+                    return cycleService.getAverageCycleLength(appUser);
                 case period:
                     return cycleService.getAveragePeriodLength(appUser);
                 case follicular:
