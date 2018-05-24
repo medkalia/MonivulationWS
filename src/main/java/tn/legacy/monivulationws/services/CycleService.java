@@ -99,7 +99,7 @@ public class CycleService {
             cycleInfo.fertilityEndDate = cycle.getFertilityEndDate();
             cycleInfo.follicularLength = cycle.getFollicularLength();
             cycleInfo.lutealLength = cycle.getLutealLength();
-            cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, DateUtil.getCurrentDateTime(), DurationType.Days);
+            cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, DateUtil.getCurrentDateTime(), DurationType.Days) + 1;
             cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, cycle.getLength());
             return cycleInfo;
         } else {
