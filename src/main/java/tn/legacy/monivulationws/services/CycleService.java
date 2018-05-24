@@ -69,13 +69,13 @@ public class CycleService {
                 cycleInfo.fertilityEndDate = currentCycle.getFertilityEndDate();
                 cycleInfo.follicularLength = currentCycle.getFollicularLength();
                 cycleInfo.lutealLength = currentCycle.getLutealLength();
-                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days);
+                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
                 cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, currentCycle.getLength());
             } else {
                 cycleInfo.startDate = currentPregnancy.getStartDate();
                 cycleInfo.currentStatus = StatusName.pregnancy;
                 cycleInfo.endDate = currentPregnancy.getFinishDate();
-                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days);
+                cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
             }
             return cycleInfo;
         } else {
