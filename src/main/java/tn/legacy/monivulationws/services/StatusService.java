@@ -134,7 +134,6 @@ public class StatusService {
             startDateToSave = startDate;
 
         if (status != null && cycleService.getCycle(appUser) != null){
-            /*TEST*/ //status.setStartDate(DateUtil.parseDate("31-01-2018 08:00:00"));
             status.setStartDate(startDateToSave);
             status.setConfirmed(true);
             status.setName(StatusName.follicular);

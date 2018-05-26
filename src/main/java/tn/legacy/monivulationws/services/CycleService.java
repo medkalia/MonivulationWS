@@ -73,10 +73,10 @@ public class CycleService {
                 cycleInfo.lutealLength = currentCycle.getLutealLength();
                 cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
                 cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, currentCycle.getLength());
-                startWeightData = weightDataService.getClosestWeightData(appUser,currentCycle.getStartDate());
+                startWeightData = weightDataService.getClosestWeightData(appUser, currentCycle.getStartDate());
                 if (startWeightData != null)
                     cycleInfo.startWeight = startWeightData.getValue();
-                currentWeightData = weightDataService.getClosestWeightData(appUser,actualEntryDate);
+                currentWeightData = weightDataService.getClosestWeightData(appUser, actualEntryDate);
                 if (currentWeightData != null)
                     cycleInfo.currentWeight = currentWeightData.getValue();
             } else {
@@ -84,10 +84,10 @@ public class CycleService {
                 cycleInfo.currentStatus = StatusName.pregnancy;
                 cycleInfo.endDate = currentPregnancy.getFinishDate();
                 cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
-                startWeightData = weightDataService.getClosestWeightData(appUser,cycleInfo.startDate);
+                startWeightData = weightDataService.getClosestWeightData(appUser, cycleInfo.startDate);
                 if (startWeightData != null)
                     cycleInfo.startWeight = startWeightData.getValue();
-                currentWeightData = weightDataService.getClosestWeightData(appUser,actualEntryDate);
+                currentWeightData = weightDataService.getClosestWeightData(appUser, actualEntryDate);
                 if (currentWeightData != null)
                     cycleInfo.currentWeight = currentWeightData.getValue();
             }
@@ -197,7 +197,8 @@ public class CycleService {
         if (cycle != null && statusService.getStatus(appUser) != null) {
             /*TEST*/ //float periodLength = DateUtil.getDurationBetween(cycle.getStartDate(),DateUtil.parseDate("03-02-2018 15:00:00"), DurationType.Days);
             float periodLength = DateUtil.getDurationBetween(cycle.getStartDate(), actualEndDate, DurationType.Days);
-
+            if (periodLength <= 0)
+                periodLength = CycleCalculationUtil.DEFAULT_PERIOD_LENGTH;
             cycle.setPeriodLength(Math.round(periodLength));
 
             cycleRepository.save(cycle);
@@ -211,10 +212,6 @@ public class CycleService {
         LocalDateTime actualDate = DateUtil.getCurrentDateTime();
         if (date != null)
             actualDate = date;
-        /*TEST*/ /*float follicularLength = DateUtil.getDurationBetween(
-                cycle.getStartDate(),
-                DateUtil.parseDate("16-01-2018 08:00:00"),
-                DurationType.Days);*/
         float follicularLength = DateUtil.getDurationBetween(
                 cycle.getStartDate(),
                 actualDate,
@@ -244,9 +241,20 @@ public class CycleService {
                 actualDate,
                 DurationType.Days);
 
-        if (lutealLength == 0) lutealLength = cycle.getLength() - cycle.getFollicularLength();
+        if (lutealLength <= 0) lutealLength = cycle.getLength() - cycle.getFollicularLength();
+
         cycle.setLutealLength(Math.round(lutealLength));
         cycle.setLength(cycle.getLutealLength() + cycle.getFollicularLength());
+        checkCycleValidity(cycle);
+    }
+
+    public void checkCycleValidity(Cycle cycle){
+        boolean negativeValuesTest = cycle.getLength() < 0 || cycle.getLutealLength() < 0 || cycle.getFollicularLength() <0 ;
+        boolean lengthTest = cycle.getLength() < CycleCalculationUtil.MINIMUM_CYCLE_LENGTH ;
+
+        if (negativeValuesTest && negativeValuesTest)
+            cycle.setConsiderForCalculation(false);
+
         cycleRepository.save(cycle);
     }
 
@@ -262,9 +270,9 @@ public class CycleService {
     public void checkCycleLength(AppUser appUser, LocalDateTime entryDate) {
         Cycle currentCycle = getCycle(appUser);
 
-        int numberOfDaysSinceStartCurrentCycle = Math.round(DateUtil.getDurationBetween(currentCycle.getStartDate(),entryDate,DurationType.Days));
-        if (numberOfDaysSinceStartCurrentCycle > currentCycle.getLength()){
-            DebugUtil.logError("("+entryDate+")UPDATE-- cycle length " + currentCycle.getLength() + " --> " + numberOfDaysSinceStartCurrentCycle);
+        int numberOfDaysSinceStartCurrentCycle = Math.round(DateUtil.getDurationBetween(currentCycle.getStartDate(), entryDate, DurationType.Days));
+        if (numberOfDaysSinceStartCurrentCycle > currentCycle.getLength()) {
+            DebugUtil.logError("(" + entryDate + ")UPDATE-- cycle length " + currentCycle.getLength() + " --> " + numberOfDaysSinceStartCurrentCycle);
             currentCycle.setLength(numberOfDaysSinceStartCurrentCycle);
         }
 
@@ -273,10 +281,10 @@ public class CycleService {
 
     public void checkCycleLutealLength(AppUser appUser, LocalDateTime entryDate) {
         Cycle currentCycle = getCycle(appUser);
-        LocalDateTime ovulationDate = DateUtil.addNumberOfDaysTo(currentCycle.getStartDate(),currentCycle.getFollicularLength());
-        int numberOfDaysSinceCurrentOvulation = Math.round(DateUtil.getDurationBetween(ovulationDate,entryDate,DurationType.Days));
-        if (numberOfDaysSinceCurrentOvulation > currentCycle.getLutealLength()){
-            DebugUtil.logError("Changin luteal length value as " + currentCycle.getLutealLength() +" < " + numberOfDaysSinceCurrentOvulation );
+        LocalDateTime ovulationDate = DateUtil.addNumberOfDaysTo(currentCycle.getStartDate(), currentCycle.getFollicularLength());
+        int numberOfDaysSinceCurrentOvulation = Math.round(DateUtil.getDurationBetween(ovulationDate, entryDate, DurationType.Days));
+        if (numberOfDaysSinceCurrentOvulation > currentCycle.getLutealLength()) {
+            DebugUtil.logError("Changin luteal length value as " + currentCycle.getLutealLength() + " < " + numberOfDaysSinceCurrentOvulation);
             currentCycle.setLutealLength(numberOfDaysSinceCurrentOvulation);
         }
 
@@ -293,6 +301,8 @@ public class CycleService {
         } else {
             cycleLength = 0;
         }
+        if (cycleLength <= 0)
+            cycleLength = CycleCalculationUtil.DEFAULT_CYCLE_LENGTH;
         cycleLength = Math.round(cycleLength);
         return cycleLength;
     }
@@ -304,6 +314,8 @@ public class CycleService {
         } else {
             periodLength = 0;
         }
+        if (periodLength <= 0)
+            periodLength = CycleCalculationUtil.DEFAULT_PERIOD_LENGTH;
         periodLength = Math.round(periodLength);
         return periodLength;
     }
@@ -315,6 +327,8 @@ public class CycleService {
         } else {
             follicularLength = 0;
         }
+        if (follicularLength <= 0)
+            follicularLength = CycleCalculationUtil.DEFAULT_FOLLICULAR_LENGTH;
         follicularLength = Math.round(follicularLength);
         return follicularLength;
     }
@@ -326,6 +340,8 @@ public class CycleService {
         } else {
             lutealLength = 0;
         }
+        if (lutealLength <= 0)
+            lutealLength = CycleCalculationUtil.DEFAULT_LUTEAL_LENGTH;
         lutealLength = Math.round(lutealLength);
         return lutealLength;
     }

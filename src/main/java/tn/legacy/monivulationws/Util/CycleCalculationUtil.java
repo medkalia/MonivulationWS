@@ -15,6 +15,8 @@ public class CycleCalculationUtil {
     public final static int DEFAULT_FERTILITY_START_BEFORE = 5;
     public final static int DEFAULT_FERTILITY_END_AFTER = 1;
     public final static int DEFAULT_LUTEAL_LENGTH = 13;
+    public final static int DEFAULT_FOLLICULAR_LENGTH = 15;
+    public final static float MINIMUM_CYCLE_LENGTH = 18;
 
     public static DateEntry getFertilityDates(LocalDateTime cycleStartDate, int cycleLength){
         LocalDateTime cycleEndDate = cycleStartDate.plusDays(cycleLength);
