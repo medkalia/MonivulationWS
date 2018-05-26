@@ -54,6 +54,14 @@ public class WeightDataService {
 
         return  null;
     }
+
+    public WeightData getClosestWeightData (AppUser appUser, LocalDateTime date){
+        List<WeightData> weightDataList = weightDataRepository.getClosestWeightData(appUser,date);
+        if (weightDataList.size()>=1)
+            return weightDataList.get(weightDataList.size()-1);
+        else
+            return null;
+    }
     //------------------------------------------
 
 }

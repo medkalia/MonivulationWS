@@ -8,10 +8,7 @@ import tn.legacy.monivulationws.CustomClasses.PeriodInfo;
 import tn.legacy.monivulationws.Util.CycleCalculationUtil;
 import tn.legacy.monivulationws.Util.DateUtil;
 import tn.legacy.monivulationws.Util.DebugUtil;
-import tn.legacy.monivulationws.entities.AppUser;
-import tn.legacy.monivulationws.entities.Cycle;
-import tn.legacy.monivulationws.entities.Pregnancy;
-import tn.legacy.monivulationws.entities.Status;
+import tn.legacy.monivulationws.entities.*;
 import tn.legacy.monivulationws.enumerations.DurationType;
 import tn.legacy.monivulationws.enumerations.PeriodInfoDescription;
 import tn.legacy.monivulationws.enumerations.StatusName;
@@ -34,6 +31,9 @@ public class CycleService {
     @Autowired
     private PregnancyService pregnancyService;
 
+    @Autowired
+    private WeightDataService weightDataService;
+
 
     //---------------CRUD---------------
     //get cycle of specific date
@@ -43,6 +43,8 @@ public class CycleService {
 
     //get last recorded cycle
     public CycleInfo getCycleInfo(AppUser appUser, LocalDateTime entryDate) {
+        WeightData startWeightData = null;
+        WeightData currentWeightData = null;
         List<Cycle> resultList = cycleRepository.getLastCycle(appUser);
         Status status = statusService.getStatus(appUser);
         LocalDateTime actualEntryDate = DateUtil.getCurrentDateTime();
@@ -71,11 +73,23 @@ public class CycleService {
                 cycleInfo.lutealLength = currentCycle.getLutealLength();
                 cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
                 cycleInfo.endDate = DateUtil.addNumberOfDaysTo(cycleInfo.startDate, currentCycle.getLength());
+                startWeightData = weightDataService.getClosestWeightData(appUser,currentCycle.getStartDate());
+                if (startWeightData != null)
+                    cycleInfo.startWeight = startWeightData.getValue();
+                currentWeightData = weightDataService.getClosestWeightData(appUser,actualEntryDate);
+                if (currentWeightData != null)
+                    cycleInfo.currentWeight = currentWeightData.getValue();
             } else {
                 cycleInfo.startDate = currentPregnancy.getStartDate();
                 cycleInfo.currentStatus = StatusName.pregnancy;
                 cycleInfo.endDate = currentPregnancy.getFinishDate();
                 cycleInfo.currentDayOfCycle = (int) DateUtil.getDurationBetween(cycleInfo.startDate, actualEntryDate, DurationType.Days) + 1;
+                startWeightData = weightDataService.getClosestWeightData(appUser,cycleInfo.startDate);
+                if (startWeightData != null)
+                    cycleInfo.startWeight = startWeightData.getValue();
+                currentWeightData = weightDataService.getClosestWeightData(appUser,actualEntryDate);
+                if (currentWeightData != null)
+                    cycleInfo.currentWeight = currentWeightData.getValue();
             }
             return cycleInfo;
         } else {
@@ -225,22 +239,14 @@ public class CycleService {
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
                 DateUtil.parseDate("31-01-2018 10:00:00"),
                 DurationType.Days);*/
-        DebugUtil.logError("Doing calculations on cycle end of ID : " + cycle.getId());
-        DebugUtil.logError("Old luteal length = " + cycle.getLutealLength());
-        DebugUtil.logError("Doing checking on date : " + actualDate);
-        DebugUtil.logError("Follicular length = " + cycle.getFollicularLength());
-        DebugUtil.logError("Ovulation date (start+fl) = " + DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()));
         float lutealLength = DateUtil.getDurationBetween(
                 DateUtil.addNumberOfDaysTo(cycle.getStartDate(), cycle.getFollicularLength()),
                 actualDate,
                 DurationType.Days);
-        DebugUtil.logError("New calculated Luteal length = " + lutealLength);
-        DebugUtil.logError("Old cycle length = " + cycle.getLength());
 
         if (lutealLength == 0) lutealLength = cycle.getLength() - cycle.getFollicularLength();
         cycle.setLutealLength(Math.round(lutealLength));
         cycle.setLength(cycle.getLutealLength() + cycle.getFollicularLength());
-        DebugUtil.logError("new length = " + cycle.getLength());
         cycleRepository.save(cycle);
     }
 

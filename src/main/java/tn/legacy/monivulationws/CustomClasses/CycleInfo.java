@@ -21,4 +21,6 @@ public class CycleInfo {
     public float lutealLength;
     public StatusName currentStatus;
     public int currentDayOfCycle;
+    public float startWeight ;
+    public float currentWeight ;
 }
