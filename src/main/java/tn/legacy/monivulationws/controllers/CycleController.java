@@ -167,4 +167,14 @@ public class CycleController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/cycle/getPrediction/{id}/{numberOfMonths}")
+    public List<Cycle> getCyclePrediction (@PathVariable int id , @PathVariable int numberOfMonths ) throws NotFoundException {
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return cycleService.getCyclePrediction(appUser,numberOfMonths);
+        }else{
+            throw new NotFoundException("AppUser of Id "+id+" Not found");
+        }
+    }
+
 }

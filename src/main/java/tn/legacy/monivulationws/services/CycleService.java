@@ -15,6 +15,7 @@ import tn.legacy.monivulationws.enumerations.StatusName;
 import tn.legacy.monivulationws.repositories.CycleRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -249,9 +250,9 @@ public class CycleService {
         checkCycleValidity(cycle);
     }
 
-    public void checkCycleValidity(Cycle cycle){
-        boolean negativeValuesTest = cycle.getLength() < 0 || cycle.getLutealLength() < 0 || cycle.getFollicularLength() <0 ;
-        boolean lengthTest = cycle.getLength() < CycleCalculationUtil.MINIMUM_CYCLE_LENGTH ;
+    public void checkCycleValidity(Cycle cycle) {
+        boolean negativeValuesTest = cycle.getLength() < 0 || cycle.getLutealLength() < 0 || cycle.getFollicularLength() < 0;
+        boolean lengthTest = cycle.getLength() < CycleCalculationUtil.MINIMUM_CYCLE_LENGTH;
 
         if (negativeValuesTest && lengthTest)
             cycle.setConsiderForCalculation(false);
@@ -400,6 +401,44 @@ public class CycleService {
         }
 
         return periodInfo;
+    }
+
+    public List<Cycle> getCyclePrediction(AppUser appUser, int numberOfMonths) {
+        int i = 0;
+        Cycle currentCycle = getCycle(appUser);
+        List<Cycle> cycleList = new ArrayList<>();
+        if (currentCycle != null) {
+            LocalDateTime startDateToSave = null;
+            for (i = 0; i < numberOfMonths; i++) {
+                Cycle newCycle = new Cycle();
+                Cycle lastCycle ;
+                if (i == 0)
+                    lastCycle = currentCycle;
+                else
+                    lastCycle = cycleList.get(i - 1);
+
+
+                startDateToSave = DateUtil.addNumberOfDaysTo(lastCycle.getStartDate(), lastCycle.getLength());
+                int cycleLength = (int) getAverageCycleLength(appUser);
+                DateEntry ovulationRelatedDate = CycleCalculationUtil.getFertilityDates(startDateToSave, cycleLength);
+                int periodLength = (int) getAveragePeriodLength(appUser);
+                int follicularLength = (int) getAverageFollicularLength(appUser);
+                int lutealLength = (int) getAverageLutealLength(appUser);
+
+                newCycle.setStartDate(startDateToSave);
+                newCycle.setLength(cycleLength);
+                newCycle.setPeriodLength(periodLength);
+                newCycle.setOvulationDate(ovulationRelatedDate.getEntryDate());
+                newCycle.setFertilityStartDate(ovulationRelatedDate.getStartDate());
+                newCycle.setFertilityEndDate(ovulationRelatedDate.getEndDate());
+                newCycle.setFollicularLength(follicularLength);
+                newCycle.setLutealLength(lutealLength);
+
+                cycleList.add(newCycle);
+            }
+            return cycleList;
+        }
+        return null;
     }
     //------------------------------------------
 
