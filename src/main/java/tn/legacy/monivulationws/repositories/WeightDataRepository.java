@@ -18,4 +18,6 @@ public interface WeightDataRepository extends CrudRepository<WeightData, Integer
 
     @Query("select w from WeightData w where w.entryDate = (select max(ww.entryDate) from WeightData ww where ww.appUser = ?1 and ww.entryDate <= ?2 )")
     List<WeightData> getClosestWeightData (AppUser appUser, LocalDateTime date);
+
+    WeightData findFirstByAppUserOrderByIdDesc (AppUser appUser);
 }

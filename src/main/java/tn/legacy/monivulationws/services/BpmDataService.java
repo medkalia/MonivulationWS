@@ -51,4 +51,8 @@ public class BpmDataService {
 
         return  null;
     }
+
+    public BpmData getLastBpmData (AppUser appUser){
+        return bpmDataRepository.findFirstByAppUserOrderByIdDesc(appUser);
+    }
 }

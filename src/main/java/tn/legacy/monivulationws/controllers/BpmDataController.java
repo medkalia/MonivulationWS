@@ -53,4 +53,15 @@ public class BpmDataController {
             throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }
     }
+
+    @RequestMapping(method = RequestMethod.GET,value = "/bpmData/getLast/{id}")
+    public BpmData getLastBpmData(@PathVariable int id) throws NotFoundException{
+
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return bpmDataService.getLastBpmData(appUser);
+        }else{
+            throw new NotFoundException("AppUser of Id : "+id+" Not found");
+        }
+    }
 }

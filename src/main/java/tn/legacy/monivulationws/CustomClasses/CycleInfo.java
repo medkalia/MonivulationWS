@@ -16,6 +16,8 @@ public class CycleInfo {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     public LocalDateTime fertilityStartDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
+    public LocalDateTime ovulationDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     public LocalDateTime fertilityEndDate;
     public float follicularLength;
     public float lutealLength;
@@ -23,4 +25,5 @@ public class CycleInfo {
     public int currentDayOfCycle;
     public float startWeight ;
     public float currentWeight ;
+
 }

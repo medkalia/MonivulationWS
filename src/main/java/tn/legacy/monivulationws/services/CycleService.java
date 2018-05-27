@@ -67,6 +67,7 @@ public class CycleService {
                 }
                 cycleInfo.length = currentCycle.getLength();
                 cycleInfo.periodLength = currentCycle.getPeriodLength();
+                cycleInfo.ovulationDate = currentCycle.getOvulationDate();
                 cycleInfo.fertilityStartDate = currentCycle.getFertilityStartDate();
                 cycleInfo.fertilityEndDate = currentCycle.getFertilityEndDate();
                 cycleInfo.follicularLength = currentCycle.getFollicularLength();
@@ -252,7 +253,7 @@ public class CycleService {
         boolean negativeValuesTest = cycle.getLength() < 0 || cycle.getLutealLength() < 0 || cycle.getFollicularLength() <0 ;
         boolean lengthTest = cycle.getLength() < CycleCalculationUtil.MINIMUM_CYCLE_LENGTH ;
 
-        if (negativeValuesTest && negativeValuesTest)
+        if (negativeValuesTest && lengthTest)
             cycle.setConsiderForCalculation(false);
 
         cycleRepository.save(cycle);

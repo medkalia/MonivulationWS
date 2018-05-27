@@ -51,7 +51,17 @@ public class WeightDataController {
         }else{
             throw new NotFoundException("AppUser of Id : "+id+" Not found");
         }
+    }
 
+    @RequestMapping(method = RequestMethod.GET,value = "/weightData/getLast/{id}")
+    public WeightData getLastWeightData(@PathVariable int id) throws NotFoundException{
+
+        AppUser appUser = userService.getUser(id);
+        if (appUser != null){
+            return weightDataService.getLastWeightData(appUser);
+        }else{
+            throw new NotFoundException("AppUser of Id : "+id+" Not found");
+        }
     }
 
 }

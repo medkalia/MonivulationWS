@@ -62,6 +62,10 @@ public class WeightDataService {
         else
             return null;
     }
+
+    public WeightData getLastWeightData (AppUser appUser){
+        return weightDataRepository.findFirstByAppUserOrderByIdDesc(appUser);
+    }
     //------------------------------------------
 
 }

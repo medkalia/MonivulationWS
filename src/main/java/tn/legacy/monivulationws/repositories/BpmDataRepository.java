@@ -14,4 +14,6 @@ public interface BpmDataRepository extends CrudRepository<BpmData, Integer> {
     BpmData findFirstByAppUserAndAndEntryDateBetween(AppUser appUser, LocalDateTime startDate, LocalDateTime endDate);
 
     BpmData findFirstByAppUserAndEntryDate(AppUser appUser, LocalDateTime date);
+
+    BpmData findFirstByAppUserOrderByIdDesc (AppUser appUser);
 }
