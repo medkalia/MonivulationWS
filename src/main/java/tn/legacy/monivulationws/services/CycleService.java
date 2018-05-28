@@ -35,6 +35,9 @@ public class CycleService {
     @Autowired
     private WeightDataService weightDataService;
 
+    @Autowired
+    private AnomalyService anomalyService;
+
 
     //---------------CRUD---------------
     //get cycle of specific date
@@ -202,7 +205,7 @@ public class CycleService {
             if (periodLength <= 0)
                 periodLength = CycleCalculationUtil.DEFAULT_PERIOD_LENGTH;
             cycle.setPeriodLength(Math.round(periodLength));
-
+            anomalyService.checkPeriodLengthForAnomaly(cycle,actualEndDate);
             cycleRepository.save(cycle);
             return "Period Finished";
         }
@@ -247,6 +250,7 @@ public class CycleService {
 
         cycle.setLutealLength(Math.round(lutealLength));
         cycle.setLength(cycle.getLutealLength() + cycle.getFollicularLength());
+        anomalyService.checkCycleLengthForAnomaly(cycle,actualDate);
         checkCycleValidity(cycle);
     }
 
@@ -264,6 +268,7 @@ public class CycleService {
         Cycle cycleToUpdate = cycleRepository.findOne(cycle.getId());
         if (cycleToUpdate != null) {
             cycleToUpdate.setConsiderForCalculation(cycle.isConsiderForCalculation());
+            cycleRepository.save(cycleToUpdate);
             return true;
         } else
             return false;

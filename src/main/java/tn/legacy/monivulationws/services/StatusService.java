@@ -30,6 +30,8 @@ public class StatusService {
     @Autowired
     private PregnancyService pregnancyService;
 
+
+
     //Check if status and cycle exist
     public boolean checkFirstStatus (AppUser appUser){
         return statusRepository.findByAppUser(appUser) != null ;

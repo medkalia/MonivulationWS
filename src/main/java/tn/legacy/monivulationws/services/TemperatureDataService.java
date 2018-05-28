@@ -21,12 +21,16 @@ public class TemperatureDataService {
     private StatusService statusService;
 
     @Autowired
+    private AnomalyService anomalyService;
+
+    @Autowired
     private CycleService cycleService;
 
     //---------------CRUD---------------
     public String  addTemperatureData(TemperatureData temperatureData){
         if (statusService.getStatus(temperatureData.getAppUser()) != null && cycleService.getCycle(temperatureData.getAppUser()) != null){
             temperatureDataRepository.save(temperatureData);
+            anomalyService.checkTempForAnomaly(temperatureData.getValue(),cycleService.getCycle(temperatureData.getAppUser()),temperatureData.getEntryDate());
             return statusService.checkStatus(temperatureData);
         }
         return "No Status Or/And Cycle Created! Please call the addFirstCycle Service before adding other data for user of id " + temperatureData.getAppUser().getId();

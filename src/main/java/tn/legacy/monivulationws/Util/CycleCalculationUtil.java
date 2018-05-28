@@ -10,12 +10,14 @@ import java.util.Map;
 
 public class CycleCalculationUtil {
 
+    //********************* DEFAULTS
     public final static float DEFAULT_CYCLE_LENGTH = 28;
     public final static float DEFAULT_PERIOD_LENGTH = 5;
     public final static int DEFAULT_FERTILITY_START_BEFORE = 5;
     public final static int DEFAULT_FERTILITY_END_AFTER = 1;
     public final static int DEFAULT_LUTEAL_LENGTH = 13;
     public final static int DEFAULT_FOLLICULAR_LENGTH = 15;
+    //********************* LIMITS
     public final static float MINIMUM_CYCLE_LENGTH = 18;
 
     public static DateEntry getFertilityDates(LocalDateTime cycleStartDate, int cycleLength){

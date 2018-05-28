@@ -1,6 +1,7 @@
 package tn.legacy.monivulationws.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import tn.legacy.monivulationws.enumerations.AnomalyDegree;
 import tn.legacy.monivulationws.enumerations.AnomalyName;
 
 import javax.persistence.*;
@@ -15,10 +16,16 @@ public class Anomaly {
     private AnomalyName name;
     private boolean detected = true;
     private boolean confirmed = false;
+    private AnomalyDegree anomalyDegree = AnomalyDegree.Problematic ;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime endDate;
+    private String description ;
+    private String advice;
+
+    @ManyToOne(cascade = CascadeType.REMOVE)
+    private Cycle cycle ;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
     private AppUser appUser;
@@ -77,5 +84,37 @@ public class Anomaly {
 
     public void setAppUser(AppUser appUser) {
         this.appUser = appUser;
+    }
+
+    public AnomalyDegree getAnomalyDegree() {
+        return anomalyDegree;
+    }
+
+    public void setAnomalyDegree(AnomalyDegree anomalyDegree) {
+        this.anomalyDegree = anomalyDegree;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getAdvice() {
+        return advice;
+    }
+
+    public void setAdvice(String advice) {
+        this.advice = advice;
+    }
+
+    public Cycle getCycle() {
+        return cycle;
+    }
+
+    public void setCycle(Cycle cycle) {
+        this.cycle = cycle;
     }
 }
