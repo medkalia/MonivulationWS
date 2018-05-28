@@ -1,6 +1,7 @@
 package tn.legacy.monivulationws.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import tn.legacy.monivulationws.enumerations.AnomalyDegree;
 import tn.legacy.monivulationws.enumerations.AnomalyName;
 
@@ -27,6 +28,7 @@ public class Anomaly {
     @ManyToOne(cascade = CascadeType.REMOVE)
     private Cycle cycle ;
 
+    @JsonIgnore
     @ManyToOne(cascade = CascadeType.REMOVE)
     private AppUser appUser;
 

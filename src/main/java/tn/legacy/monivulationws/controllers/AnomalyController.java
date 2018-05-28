@@ -21,7 +21,7 @@ public class AnomalyController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(method = RequestMethod.POST, value = "/anomaly/getAll/{id}")
+    @RequestMapping(method = RequestMethod.GET, value = "/anomaly/getAll/{id}")
     public List<Anomaly> getAllAnomaly (@PathVariable int id) throws NotFoundException {
         AppUser appUser = userService.getUser(id);
         if (appUser != null){
