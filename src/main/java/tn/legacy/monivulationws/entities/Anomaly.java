@@ -24,7 +24,9 @@ public class Anomaly {
     private LocalDateTime startDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime endDate;
+    @Column(columnDefinition = "LONGTEXT")
     private String description ;
+    @Column(columnDefinition = "LONGTEXT")
     private String advice;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
