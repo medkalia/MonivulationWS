@@ -14,9 +14,11 @@ public class Anomaly {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private int id;
+    @Enumerated(EnumType.STRING)
     private AnomalyName name;
     private boolean detected = true;
     private boolean confirmed = false;
+    @Enumerated(EnumType.STRING)
     private AnomalyDegree anomalyDegree = AnomalyDegree.Problematic ;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime startDate;
